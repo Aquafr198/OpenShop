@@ -1,0 +1,92 @@
+{
+  "name": "@openshop/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic headless commerce core for OpenShop.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./reactive": {
+      "types": "./dist/reactive/index.d.ts",
+      "import": "./dist/reactive/index.js"
+    },
+    "./storefront": {
+      "types": "./dist/storefront/index.d.ts",
+      "import": "./dist/storefront/index.js"
+    },
+    "./cart": {
+      "types": "./dist/cart/index.d.ts",
+      "import": "./dist/cart/index.js"
+    },
+    "./cache-adapters": {
+      "types": "./dist/cache-adapters/index.d.ts",
+      "import": "./dist/cache-adapters/index.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.js"
+    },
+    "./consent": {
+      "types": "./dist/consent/index.d.ts",
+      "import": "./dist/consent/index.js"
+    },
+    "./customer": {
+      "types": "./dist/customer/index.d.ts",
+      "import": "./dist/customer/index.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n/index.d.ts",
+      "import": "./dist/i18n/index.js"
+    },
+    "./image": {
+      "types": "./dist/image/index.d.ts",
+      "import": "./dist/image/index.js"
+    },
+    "./search": {
+      "types": "./dist/search/index.d.ts",
+      "import": "./dist/search/index.js"
+    },
+    "./security": {
+      "types": "./dist/security/index.d.ts",
+      "import": "./dist/security/index.js"
+    },
+    "./seo": {
+      "types": "./dist/seo/index.d.ts",
+      "import": "./dist/seo/index.js"
+    },
+    "./shop-pay": {
+      "types": "./dist/shop-pay/index.d.ts",
+      "import": "./dist/shop-pay/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
+    "./money": {
+      "types": "./dist/money/index.d.ts",
+      "import": "./dist/money/index.js"
+    },
+    "./analytics": {
+      "types": "./dist/analytics/index.d.ts",
+      "import": "./dist/analytics/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

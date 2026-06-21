@@ -1,0 +1,30 @@
+import { defineConfig } from "tsup";
+
+export default defineConfig({
+  entry: [
+    "src/index.ts",
+    "src/reactive/index.ts",
+    "src/storefront/index.ts",
+    "src/cart/index.ts",
+    "src/cache-adapters/index.ts",
+    "src/catalog/index.ts",
+    "src/consent/index.ts",
+    "src/customer/index.ts",
+    "src/i18n/index.ts",
+    "src/image/index.ts",
+    "src/search/index.ts",
+    "src/security/index.ts",
+    "src/seo/index.ts",
+    "src/server/index.ts",
+    "src/shop-pay/index.ts",
+    "src/money/index.ts",
+    "src/analytics/index.ts",
+  ],
+  format: ["esm"],
+  dts: true,
+  splitting: true,
+  treeshake: true,
+  clean: true,
+  sourcemap: true,
+  target: "es2022",
+});

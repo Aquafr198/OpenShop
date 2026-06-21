@@ -1,0 +1,37 @@
+{
+  "name": "@openshop/vue",
+  "version": "0.1.0",
+  "description": "Vue 3 bindings for OpenShop's framework-agnostic commerce core.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "peerDependencies": {
+    "vue": ">=3.4.0"
+  },
+  "dependencies": {
+    "@openshop/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^15.11.7",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "vue": "^3.5.13"
+  }
+}

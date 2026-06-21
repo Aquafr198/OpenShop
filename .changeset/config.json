@@ -1,0 +1,12 @@
+{
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    ["@openshop/core", "@openshop/react", "@openshop/vue", "@openshop/svelte"]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@openshop/example-node-storefront"]
+}
