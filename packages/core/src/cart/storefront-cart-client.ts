@@ -11,6 +11,7 @@ import type { StorefrontClient } from "../storefront/client.js";
 import {
   buildCartDocuments,
   mapCart,
+  type CartFragmentInclude,
   type CartMutationPayload,
   type CartUserError,
 } from "./cart-graphql.js";
@@ -40,6 +41,14 @@ export interface StorefrontCartClientOptions {
   storefront: StorefrontClient;
   /** Max line items fetched per request. Default 100. */
   linesPerPage?: number;
+  /** Max delivery groups fetched when `include.deliveryGroups` is on. Default 10. */
+  deliveryGroupsPerPage?: number;
+  /**
+   * Which optional cart sections to select. B2B sections (delivery addresses,
+   * delivery groups) are off by default to keep the common-case payload small;
+   * enable them when you need to read them back from mutation responses.
+   */
+  include?: CartFragmentInclude;
 }
 
 export class StorefrontCartClient implements CartClient {
@@ -48,7 +57,12 @@ export class StorefrontCartClient implements CartClient {
 
   constructor(options: StorefrontCartClientOptions) {
     this.storefront = options.storefront;
-    this.docs = buildCartDocuments(options.linesPerPage ?? 100);
+    this.docs = buildCartDocuments(options.linesPerPage ?? 100, {
+      ...(options.deliveryGroupsPerPage !== undefined
+        ? { deliveryGroupsFirst: options.deliveryGroupsPerPage }
+        : {}),
+      ...(options.include ? { include: options.include } : {}),
+    });
   }
 
   /** Unwrap a mutation payload: throw on userErrors or a missing cart. */

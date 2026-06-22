@@ -67,7 +67,8 @@ need (`@openshop/core/cart`, `/storefront`, `/catalog`, `/customer`, `/search`,
 
 - **Storefront client** — timeout, retry with jitter, circuit breaker, SWR cache
 - **Cart** — optimistic, serialized, server-reconciled; lines, discounts, gift
-  cards, buyer identity, attributes, note
+  cards, buyer identity, attributes, note. B2B delivery addresses & delivery
+  options are opt-in via `new StorefrontCartClient({ storefront, include: { deliveryAddresses: true, deliveryGroups: true } })`.
 - **Catalog** — products, collections, variant selection, encoded variants (2000+)
 - **Customer Account API** — OAuth 2.0 + PKCE, profile, orders, addresses
 - **Money** — integer-minor-unit arithmetic, `Intl` formatting

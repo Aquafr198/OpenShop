@@ -199,36 +199,71 @@ export function mapCart(raw: RawCart): Cart {
 export type { CartUserError, CartMutationPayload };
 
 /**
- * Build the reusable cart fragment. `linesFirst` caps the number of line items
- * fetched in a single request.
+ * Controls which optional (and potentially heavy) sections the cart fragment
+ * selects. The base cart (lines, cost, discount codes, attributes, note) is
+ * always included. Heavy B2B sections are off by default so a typical B2C
+ * `addLine` doesn't pay for delivery groups/addresses it never reads.
  */
-export function cartFragment(linesFirst: number): string {
-  return /* GraphQL */ `
-    fragment CartFields on Cart {
-      id
-      checkoutUrl
-      totalQuantity
-      note
-      cost {
-        subtotalAmount { amount currencyCode }
-        totalAmount { amount currencyCode }
-        totalTaxAmount { amount currencyCode }
-        totalDutyAmount { amount currencyCode }
-      }
-      discountCodes { code applicable }
-      attributes { key value }
+export interface CartFragmentInclude {
+  /** Buyer identity (country/email/phone/customer). Default `true` (cheap). */
+  buyerIdentity?: boolean;
+  /** Applied gift cards. Default `true` (cheap, common for gift-card UIs). */
+  appliedGiftCards?: boolean;
+  /** B2B/multi-address delivery addresses. Default `false`. */
+  deliveryAddresses?: boolean;
+  /**
+   * Delivery groups + their options (heavy; also empty unless the cart is
+   * tied to a logged-in customer). Default `false`.
+   */
+  deliveryGroups?: boolean;
+}
+
+export interface CartFragmentOptions {
+  /** Max delivery groups fetched when `include.deliveryGroups` is on. Default 10. */
+  deliveryGroupsFirst?: number;
+  include?: CartFragmentInclude;
+}
+
+const MONEY = `{ amount currencyCode }`;
+
+/**
+ * Build the reusable cart fragment. `linesFirst` caps the number of line items
+ * fetched; `options.include` gates the optional sections (B2B sections are off
+ * by default to keep the common-case payload small).
+ */
+export function cartFragment(
+  linesFirst: number,
+  options: CartFragmentOptions = {},
+): string {
+  const include = options.include ?? {};
+  const withBuyerIdentity = include.buyerIdentity ?? true;
+  const withGiftCards = include.appliedGiftCards ?? true;
+  const withAddresses = include.deliveryAddresses ?? false;
+  const withGroups = include.deliveryGroups ?? false;
+  const groupsFirst = options.deliveryGroupsFirst ?? 10;
+
+  const buyerIdentityBlock = withBuyerIdentity
+    ? `
       buyerIdentity {
         countryCode
         email
         phone
         customer { id }
-      }
+      }`
+    : "";
+
+  const giftCardsBlock = withGiftCards
+    ? `
       appliedGiftCards {
         id
         lastCharacters
-        amountUsed { amount currencyCode }
-        balance { amount currencyCode }
-      }
+        amountUsed ${MONEY}
+        balance ${MONEY}
+      }`
+    : "";
+
+  const addressesBlock = withAddresses
+    ? `
       delivery {
         addresses {
           id
@@ -249,37 +284,51 @@ export function cartFragment(linesFirst: number): string {
             }
           }
         }
-      }
-      deliveryGroups(first: 10) {
+      }`
+    : "";
+
+  const deliveryOptionFields = `
+    handle
+    title
+    code
+    deliveryMethodType
+    description
+    estimatedCost ${MONEY}`;
+
+  const groupsBlock = withGroups
+    ? `
+      deliveryGroups(first: ${groupsFirst}) {
         nodes {
           id
           groupType
-          selectedDeliveryOption {
-            handle
-            title
-            code
-            deliveryMethodType
-            description
-            estimatedCost { amount currencyCode }
-          }
-          deliveryOptions {
-            handle
-            title
-            code
-            deliveryMethodType
-            description
-            estimatedCost { amount currencyCode }
-          }
+          selectedDeliveryOption { ${deliveryOptionFields} }
+          deliveryOptions { ${deliveryOptionFields} }
         }
+      }`
+    : "";
+
+  return /* GraphQL */ `
+    fragment CartFields on Cart {
+      id
+      checkoutUrl
+      totalQuantity
+      note
+      cost {
+        subtotalAmount ${MONEY}
+        totalAmount ${MONEY}
+        totalTaxAmount ${MONEY}
+        totalDutyAmount ${MONEY}
       }
+      discountCodes { code applicable }
+      attributes { key value }${buyerIdentityBlock}${giftCardsBlock}${addressesBlock}${groupsBlock}
       lines(first: ${linesFirst}) {
         nodes {
           id
           quantity
           attributes { key value }
           cost {
-            totalAmount { amount currencyCode }
-            amountPerQuantity { amount currencyCode }
+            totalAmount ${MONEY}
+            amountPerQuantity ${MONEY}
           }
           merchandise {
             __typename
@@ -287,7 +336,7 @@ export function cartFragment(linesFirst: number): string {
               id
               title
               availableForSale
-              price { amount currencyCode }
+              price ${MONEY}
               image { url altText width height }
               selectedOptions { name value }
               product { title }
@@ -301,9 +350,12 @@ export function cartFragment(linesFirst: number): string {
 
 type Vars = Record<string, unknown>;
 
-/** Build all cart documents bound to a given line page size. */
-export function buildCartDocuments(linesFirst: number) {
-  const fragment = cartFragment(linesFirst);
+/** Build all cart documents bound to a given line page size and field set. */
+export function buildCartDocuments(
+  linesFirst: number,
+  options: CartFragmentOptions = {},
+) {
+  const fragment = cartFragment(linesFirst, options);
 
   const cartQuery = gql<{ cart: RawCart | null }, { id: string }>`
     ${fragment}

@@ -11,6 +11,10 @@ export {
 } from "./storefront-cart-client.js";
 export { mapCart } from "./cart-graphql.js";
 export type {
+  CartFragmentInclude,
+  CartFragmentOptions,
+} from "./cart-graphql.js";
+export type {
   Cart,
   CartLine,
   CartCost,

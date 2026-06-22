@@ -67,14 +67,22 @@ function routedFetch(routes: Record<string, unknown>) {
   });
 }
 
-function makeClient(routes: Record<string, unknown>) {
+function makeClient(
+  routes: Record<string, unknown>,
+  clientOptions: Partial<
+    ConstructorParameters<typeof StorefrontCartClient>[0]
+  > = {},
+) {
   const fetchMock = routedFetch(routes);
   const storefront = createStorefrontClient({
     storeDomain: "demo.myshopify.com",
     publicAccessToken: "token",
     fetch: fetchMock as unknown as typeof fetch,
   });
-  return { client: new StorefrontCartClient({ storefront }), fetchMock };
+  return {
+    client: new StorefrontCartClient({ storefront, ...clientOptions }),
+    fetchMock,
+  };
 }
 
 describe("StorefrontCartClient", () => {
@@ -316,24 +324,16 @@ describe("StorefrontCartClient", () => {
   });
 
   it("maps delivery groups and their options", async () => {
-    const { client } = makeClient({
-      GetCart: {
-        cart: rawCart({
-          deliveryGroups: {
-            nodes: [
-              {
-                id: "gid://shopify/CartDeliveryGroup/1",
-                groupType: "ONE_TIME_PURCHASE",
-                selectedDeliveryOption: {
-                  handle: "standard",
-                  title: "Standard",
-                  code: "STD",
-                  deliveryMethodType: "SHIPPING",
-                  description: null,
-                  estimatedCost: { amount: "5.00", currencyCode: "USD" },
-                },
-                deliveryOptions: [
-                  {
+    const { client } = makeClient(
+      {
+        GetCart: {
+          cart: rawCart({
+            deliveryGroups: {
+              nodes: [
+                {
+                  id: "gid://shopify/CartDeliveryGroup/1",
+                  groupType: "ONE_TIME_PURCHASE",
+                  selectedDeliveryOption: {
                     handle: "standard",
                     title: "Standard",
                     code: "STD",
@@ -341,21 +341,32 @@ describe("StorefrontCartClient", () => {
                     description: null,
                     estimatedCost: { amount: "5.00", currencyCode: "USD" },
                   },
-                  {
-                    handle: "express",
-                    title: "Express",
-                    code: "EXP",
-                    deliveryMethodType: "SHIPPING",
-                    description: "Next day",
-                    estimatedCost: { amount: "15.00", currencyCode: "USD" },
-                  },
-                ],
-              },
-            ],
-          },
-        }),
+                  deliveryOptions: [
+                    {
+                      handle: "standard",
+                      title: "Standard",
+                      code: "STD",
+                      deliveryMethodType: "SHIPPING",
+                      description: null,
+                      estimatedCost: { amount: "5.00", currencyCode: "USD" },
+                    },
+                    {
+                      handle: "express",
+                      title: "Express",
+                      code: "EXP",
+                      deliveryMethodType: "SHIPPING",
+                      description: "Next day",
+                      estimatedCost: { amount: "15.00", currencyCode: "USD" },
+                    },
+                  ],
+                },
+              ],
+            },
+          }),
+        },
       },
-    });
+      { include: { deliveryGroups: true } },
+    );
     const cart = await client.get("gid://shopify/Cart/1");
     expect(cart?.deliveryGroups).toHaveLength(1);
     expect(cart?.deliveryGroups?.[0]!.deliveryOptions).toHaveLength(2);
@@ -365,5 +376,35 @@ describe("StorefrontCartClient", () => {
     expect(
       cart?.deliveryGroups?.[0]!.deliveryOptions[1]!.estimatedCost.amount,
     ).toBe("15.00");
+  });
+
+  it("omits heavy B2B sections from the fragment by default", async () => {
+    const { client, fetchMock } = makeClient({ GetCart: { cart: rawCart() } });
+    await client.get("gid://shopify/Cart/1");
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.query).not.toContain("deliveryGroups");
+    expect(body.query).not.toContain("CartDeliveryAddress");
+    // Light sections stay in by default.
+    expect(body.query).toContain("buyerIdentity");
+    expect(body.query).toContain("appliedGiftCards");
+  });
+
+  it("includes B2B sections when opted in, and can drop light ones", async () => {
+    const { client, fetchMock } = makeClient(
+      { GetCart: { cart: rawCart() } },
+      {
+        include: {
+          deliveryGroups: true,
+          deliveryAddresses: true,
+          appliedGiftCards: false,
+        },
+        deliveryGroupsPerPage: 5,
+      },
+    );
+    await client.get("gid://shopify/Cart/1");
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.query).toContain("deliveryGroups(first: 5)");
+    expect(body.query).toContain("CartDeliveryAddress");
+    expect(body.query).not.toContain("appliedGiftCards");
   });
 });
