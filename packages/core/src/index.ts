@@ -6,7 +6,7 @@
  * for the smallest possible bundle.
  */
 
-export const VERSION = "0.5.0";
+export const VERSION = "0.5.1";
 
 export * from "./reactive/index.js";
 export * from "./money/index.js";

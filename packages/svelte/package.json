@@ -1,6 +1,6 @@
 {
   "name": "@openshop/svelte",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Svelte stores for OpenShop's framework-agnostic commerce core.",
   "license": "MIT",
   "author": "Aquafr198",
