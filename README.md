@@ -462,6 +462,18 @@ import { AddToCartButton, QuantityAdjuster, CartTotal, CheckoutButton } from "@o
 <CheckoutButton />
 ```
 
+Product price with compare-at and a sale badge:
+
+```tsx
+import { ProductPrice } from "@openshop/react";
+
+<ProductPrice
+  price={variant.price}
+  compareAtPrice={variant.compareAtPrice}
+  badge={(pct) => <span className="badge">-{pct}%</span>}
+/>;
+```
+
 ## Architecture
 
 ```
@@ -492,6 +504,7 @@ This is an early foundation. Implemented and tested today:
 - [x] **Real `StorefrontCartClient`** (Cart API mutations + userError handling)
 - [x] **Full cart surface** (buyer identity, gift cards, attributes, note — market pricing / B2B foundation)
 - [x] **Storefront utilities** (`parseGid`, `composeGid`, `flattenConnection`)
+- [x] **Product pricing** (`getPriceDiscount`, React `<ProductPrice>` with compare-at + badge)
 - [x] **Catalog client** (products, collections with pagination, recommendations)
 - [x] **Variant selection logic** (option availability, in-stock states, URL round-trip)
 - [x] **Responsive images** (Shopify CDN transforms + `srcset`, `<Image>`)

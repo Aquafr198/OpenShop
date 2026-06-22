@@ -27,6 +27,7 @@ export {
   type CheckoutButtonProps,
 } from "./cart-ui.js";
 export { Money, useMoney, type MoneyProps } from "./money.js";
+export { ProductPrice, type ProductPriceProps } from "./product-price.js";
 export { Image, type ImageProps } from "./image.js";
 export {
   MediaFile,

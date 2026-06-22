@@ -38,4 +38,15 @@ describe("createContentSecurityPolicy", () => {
       createContentSecurityPolicy().nonce,
     );
   });
+
+  it("includes 'unsafe-inline' in style-src by default", () => {
+    const csp = createContentSecurityPolicy();
+    expect(csp.header).toContain("style-src 'self' 'unsafe-inline'");
+  });
+
+  it("drops 'unsafe-inline' from style-src when strictStyles is set", () => {
+    const csp = createContentSecurityPolicy({ strictStyles: true });
+    expect(csp.directives["style-src"]).not.toContain("'unsafe-inline'");
+    expect(csp.header).not.toContain("'unsafe-inline'");
+  });
 });

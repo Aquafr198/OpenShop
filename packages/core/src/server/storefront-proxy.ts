@@ -32,6 +32,11 @@ function operationName(query: string): string | null {
   return OP_NAME.exec(query)?.[1] ?? null;
 }
 
+/** Byte length of a string (UTF-8), not UTF-16 code-unit count. */
+function byteLength(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
+
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -57,8 +62,15 @@ export function createStorefrontProxy(options: StorefrontProxyOptions) {
       return json({ errors: [{ message: "Method not allowed" }] }, 405);
     }
 
+    // Reject oversized payloads early via the declared Content-Length, before
+    // buffering the body, then re-check the actual byte size after reading.
+    const declared = Number(request.headers.get("content-length"));
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      return json({ errors: [{ message: "Request body too large" }] }, 413);
+    }
+
     const raw = await request.text();
-    if (raw.length > maxBytes) {
+    if (byteLength(raw) > maxBytes) {
       return json({ errors: [{ message: "Request body too large" }] }, 413);
     }
 

@@ -36,7 +36,15 @@ export function generateRandomState(byteLength = 16): string {
   return base64UrlEncode(randomBytes(byteLength));
 }
 
-/** Constant-time-ish string comparison for verifying returned `state`. */
+/**
+ * Length-checked, constant-time-ish string comparison for verifying the
+ * returned OAuth `state` / `nonce`.
+ *
+ * NOTE: this early-returns on a length mismatch, so it leaks the length of the
+ * compared values. That's fine for `state`/`nonce` (random, fixed-length, not
+ * secret-by-length). Do not reuse it to compare secrets where the length
+ * itself is sensitive.
+ */
 export function safeCompare(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;

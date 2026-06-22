@@ -111,6 +111,40 @@ describe("storefront proxy", () => {
     expect(res?.status).toBe(405);
   });
 
+  it("rejects an oversized body via Content-Length before reading", async () => {
+    const proxy = createStorefrontProxy({
+      storefront: client(),
+      maxBodyBytes: 10,
+    });
+    const res = await proxy(
+      new Request("https://x.com/api/storefront", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "content-length": "999",
+        },
+        body: JSON.stringify({ query: "query Shop { shop { name } }" }),
+      }),
+    );
+    expect(res?.status).toBe(413);
+  });
+
+  it("measures body size in bytes, not UTF-16 units", async () => {
+    // 4 multi-byte chars = 4 UTF-16 units but 12 UTF-8 bytes.
+    const proxy = createStorefrontProxy({
+      storefront: client(),
+      maxBodyBytes: 6,
+    });
+    const res = await proxy(
+      new Request("https://x.com/api/storefront", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "€€€€",
+      }),
+    );
+    expect(res?.status).toBe(413);
+  });
+
   it("returns 502 when the upstream request fails", async () => {
     const failing = createStorefrontClient({
       storeDomain: "demo.myshopify.com",

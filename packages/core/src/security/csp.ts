@@ -20,12 +20,17 @@ function nonceValue(): string {
     .replace(/=+$/, "");
 }
 
-function shopifyDefaults(nonce: string): CspDirectives {
+function shopifyDefaults(nonce: string, strictStyles: boolean): CspDirectives {
   return {
     "default-src": ["'self'"],
     "base-uri": ["'self'"],
     "script-src": ["'self'", `'nonce-${nonce}'`, "https://cdn.shopify.com"],
-    "style-src": ["'self'", "'unsafe-inline'", "https://cdn.shopify.com"],
+    // `'unsafe-inline'` is included by default for compatibility with inline
+    // styles emitted by many UI libraries and Shopify embeds. Set
+    // `strictStyles: true` to drop it and nonce/hash your styles instead.
+    "style-src": strictStyles
+      ? ["'self'", "https://cdn.shopify.com"]
+      : ["'self'", "'unsafe-inline'", "https://cdn.shopify.com"],
     "img-src": ["'self'", "data:", "https://cdn.shopify.com"],
     "font-src": ["'self'", "data:", "https://cdn.shopify.com"],
     "connect-src": ["'self'", "https://monorail-edge.shopifysvc.com"],
@@ -74,6 +79,11 @@ export interface CreateCspOptions {
   directives?: CspDirectives;
   /** Provide a nonce instead of generating one (e.g. shared across responses). */
   nonce?: string;
+  /**
+   * Drop `'unsafe-inline'` from `style-src` for a stricter policy. You then
+   * need to nonce or hash any inline styles you emit. Default `false`.
+   */
+  strictStyles?: boolean;
 }
 
 export function createContentSecurityPolicy(
@@ -81,7 +91,7 @@ export function createContentSecurityPolicy(
 ): ContentSecurityPolicy {
   const nonce = options.nonce ?? nonceValue();
   const directives = mergeDirectives(
-    shopifyDefaults(nonce),
+    shopifyDefaults(nonce, options.strictStyles ?? false),
     options.directives,
   );
   return { nonce, header: serialize(directives), directives };

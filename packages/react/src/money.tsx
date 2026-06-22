@@ -24,13 +24,21 @@ export interface MoneyProps extends FormatMoneyOptions {
   data: MoneyV2 | null | undefined;
   /** Element/tag to render. Defaults to a <span>. */
   as?: keyof HTMLElementTagNameMap;
+  /** Optional class applied to the rendered element. */
+  className?: string;
 }
 
 /** Renders a formatted money amount. */
-export function Money({ data, as = "span", locale, numberFormat }: MoneyProps) {
+export function Money({
+  data,
+  as = "span",
+  className,
+  locale,
+  numberFormat,
+}: MoneyProps) {
   const formatted = useMoney(data, {
     ...(locale ? { locale } : {}),
     ...(numberFormat ? { numberFormat } : {}),
   });
-  return createElement(as, null, formatted);
+  return createElement(as, className ? { className } : null, formatted);
 }
