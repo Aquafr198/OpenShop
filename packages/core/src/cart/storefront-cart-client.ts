@@ -16,6 +16,7 @@ import {
 } from "./cart-graphql.js";
 import type {
   Cart,
+  CartBuyerIdentityInput,
   CartClient,
   CartLineInput,
   CartLineUpdateInput,
@@ -101,6 +102,35 @@ export class StorefrontCartClient implements CartClient {
       variables: { cartId, note },
     });
     return this.unwrap(data.cartNoteUpdate);
+  }
+
+  async updateBuyerIdentity(
+    cartId: string,
+    buyerIdentity: CartBuyerIdentityInput,
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartBuyerIdentityUpdate,
+      { variables: { cartId, buyerIdentity } },
+    );
+    return this.unwrap(data.cartBuyerIdentityUpdate);
+  }
+
+  async updateGiftCardCodes(cartId: string, codes: string[]): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartGiftCardCodesUpdate,
+      { variables: { cartId, giftCardCodes: codes } },
+    );
+    return this.unwrap(data.cartGiftCardCodesUpdate);
+  }
+
+  async updateAttributes(
+    cartId: string,
+    attributes: { key: string; value: string }[],
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(this.docs.cartAttributesUpdate, {
+      variables: { cartId, attributes },
+    });
+    return this.unwrap(data.cartAttributesUpdate);
   }
 
   async get(cartId: string): Promise<Cart | null> {

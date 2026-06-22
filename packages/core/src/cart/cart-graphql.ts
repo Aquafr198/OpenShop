@@ -11,6 +11,7 @@ import { gql, type TypedDocument } from "../storefront/gql.js";
 import type { MoneyV2 } from "../money/money.js";
 import type {
   Cart,
+  CartBuyerIdentityInput,
   CartLine,
   CartLineInput,
   CartLineUpdateInput,
@@ -30,6 +31,18 @@ export interface RawCart {
   };
   discountCodes: { code: string; applicable: boolean }[];
   attributes: { key: string; value: string }[];
+  buyerIdentity?: {
+    countryCode?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    customer?: { id: string } | null;
+  } | null;
+  appliedGiftCards?: {
+    id: string;
+    lastCharacters: string;
+    amountUsed: MoneyV2;
+    balance: MoneyV2;
+  }[];
   lines: { nodes: RawCartLine[] };
 }
 
@@ -100,6 +113,8 @@ export function mapCart(raw: RawCart): Cart {
     },
     discountCodes: raw.discountCodes,
     attributes: raw.attributes,
+    buyerIdentity: raw.buyerIdentity ?? null,
+    appliedGiftCards: raw.appliedGiftCards ?? [],
     lines,
   };
 }
@@ -125,6 +140,18 @@ export function cartFragment(linesFirst: number): string {
       }
       discountCodes { code applicable }
       attributes { key value }
+      buyerIdentity {
+        countryCode
+        email
+        phone
+        customer { id }
+      }
+      appliedGiftCards {
+        id
+        lastCharacters
+        amountUsed { amount currencyCode }
+        balance { amount currencyCode }
+      }
       lines(first: ${linesFirst}) {
         nodes {
           id
@@ -243,6 +270,54 @@ export function buildCartDocuments(linesFirst: number) {
     }
   `;
 
+  const cartBuyerIdentityUpdate = gql<
+    { cartBuyerIdentityUpdate: CartMutationPayload },
+    { cartId: string; buyerIdentity: CartBuyerIdentityInput }
+  >`
+    ${fragment}
+    mutation CartBuyerIdentityUpdate(
+      $cartId: ID!
+      $buyerIdentity: CartBuyerIdentityInput!
+    ) {
+      cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        cart { ...CartFields }
+        userErrors { field message code }
+      }
+    }
+  `;
+
+  const cartGiftCardCodesUpdate = gql<
+    { cartGiftCardCodesUpdate: CartMutationPayload },
+    { cartId: string; giftCardCodes: string[] }
+  >`
+    ${fragment}
+    mutation CartGiftCardCodesUpdate(
+      $cartId: ID!
+      $giftCardCodes: [String!]!
+    ) {
+      cartGiftCardCodesUpdate(cartId: $cartId, giftCardCodes: $giftCardCodes) {
+        cart { ...CartFields }
+        userErrors { field message code }
+      }
+    }
+  `;
+
+  const cartAttributesUpdate = gql<
+    { cartAttributesUpdate: CartMutationPayload },
+    { cartId: string; attributes: { key: string; value: string }[] }
+  >`
+    ${fragment}
+    mutation CartAttributesUpdate(
+      $cartId: ID!
+      $attributes: [AttributeInput!]!
+    ) {
+      cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
+        cart { ...CartFields }
+        userErrors { field message code }
+      }
+    }
+  `;
+
   return {
     cartQuery,
     cartCreate,
@@ -251,5 +326,8 @@ export function buildCartDocuments(linesFirst: number) {
     cartLinesRemove,
     cartDiscountCodesUpdate,
     cartNoteUpdate,
+    cartBuyerIdentityUpdate,
+    cartGiftCardCodesUpdate,
+    cartAttributesUpdate,
   } satisfies Record<string, TypedDocument<unknown, Vars>>;
 }

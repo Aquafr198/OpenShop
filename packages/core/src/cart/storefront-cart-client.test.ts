@@ -132,4 +132,76 @@ describe("StorefrontCartClient", () => {
     const cart = await client.get("gid://shopify/Cart/1");
     expect(cart?.lines[0]!.merchandise.image?.url).toBe("https://img/x.jpg");
   });
+
+  it("maps buyerIdentity and appliedGiftCards", async () => {
+    const { client } = makeClient({
+      GetCart: {
+        cart: rawCart({
+          buyerIdentity: {
+            countryCode: "FR",
+            email: "a@b.co",
+            phone: null,
+            customer: { id: "gid://shopify/Customer/9" },
+          },
+          appliedGiftCards: [
+            {
+              id: "gid://shopify/AppliedGiftCard/1",
+              lastCharacters: "abcd",
+              amountUsed: { amount: "5.00", currencyCode: "USD" },
+              balance: { amount: "15.00", currencyCode: "USD" },
+            },
+          ],
+        }),
+      },
+    });
+    const cart = await client.get("gid://shopify/Cart/1");
+    expect(cart?.buyerIdentity?.countryCode).toBe("FR");
+    expect(cart?.buyerIdentity?.customer?.id).toBe("gid://shopify/Customer/9");
+    expect(cart?.appliedGiftCards).toHaveLength(1);
+    expect(cart?.appliedGiftCards?.[0]!.balance.amount).toBe("15.00");
+  });
+
+  it("updates buyer identity with the right variables", async () => {
+    const { client, fetchMock } = makeClient({
+      cartBuyerIdentityUpdate: {
+        cartBuyerIdentityUpdate: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.updateBuyerIdentity("gid://shopify/Cart/1", {
+      countryCode: "FR",
+      email: "a@b.co",
+    });
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.cartId).toBe("gid://shopify/Cart/1");
+    expect(body.variables.buyerIdentity).toEqual({
+      countryCode: "FR",
+      email: "a@b.co",
+    });
+  });
+
+  it("updates gift card codes with the right variables", async () => {
+    const { client, fetchMock } = makeClient({
+      cartGiftCardCodesUpdate: {
+        cartGiftCardCodesUpdate: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.updateGiftCardCodes("gid://shopify/Cart/1", ["GIFT-1"]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.giftCardCodes).toEqual(["GIFT-1"]);
+  });
+
+  it("updates attributes with the right variables", async () => {
+    const { client, fetchMock } = makeClient({
+      cartAttributesUpdate: {
+        cartAttributesUpdate: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.updateAttributes("gid://shopify/Cart/1", [
+      { key: "gift_wrap", value: "yes" },
+    ]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.attributes).toEqual([
+      { key: "gift_wrap", value: "yes" },
+    ]);
+  });
 });

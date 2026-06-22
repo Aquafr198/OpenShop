@@ -14,6 +14,7 @@ import { createStore, type ReadableStore } from "../reactive/store.js";
 import { Money } from "../money/money.js";
 import type {
   Cart,
+  CartBuyerIdentityInput,
   CartClient,
   CartLineInput,
   CartLineUpdateInput,
@@ -51,6 +52,18 @@ export interface CartStore extends ReadableStore<CartState> {
   updateLine(line: CartLineUpdateInput): Promise<void>;
   removeLine(lineId: string): Promise<void>;
   setDiscountCodes(codes: string[]): Promise<void>;
+  /** Apply or replace gift card codes on the cart. */
+  setGiftCardCodes(codes: string[]): Promise<void>;
+  /**
+   * Update the buyer identity — drives market pricing (`countryCode`),
+   * authenticated checkout (`customerAccessToken`) and B2B
+   * (`companyLocationId`).
+   */
+  setBuyerIdentity(buyerIdentity: CartBuyerIdentityInput): Promise<void>;
+  /** Replace the cart-level custom attributes. */
+  setAttributes(attributes: { key: string; value: string }[]): Promise<void>;
+  /** Set the cart note. */
+  setNote(note: string): Promise<void>;
   /** Re-fetch the authoritative cart from the server. */
   refresh(): Promise<void>;
 }
@@ -197,6 +210,44 @@ export function createCartStore(options: CartStoreOptions): CartStore {
       );
     },
 
+    setGiftCardCodes(codes) {
+      const op = requireClientMethod(client, "updateGiftCardCodes");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, codes),
+        () => client.create([]),
+      );
+    },
+
+    setBuyerIdentity(buyerIdentity) {
+      const op = requireClientMethod(client, "updateBuyerIdentity");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, buyerIdentity),
+        () => client.create([]),
+      );
+    },
+
+    setAttributes(attributes) {
+      const op = requireClientMethod(client, "updateAttributes");
+      return mutate(
+        // Optimistic: attributes are pure cart-level metadata, safe to patch.
+        (cart) => (cart ? { ...cart, attributes } : null),
+        (cartId) => op(cartId, attributes),
+        () => client.create([]),
+      );
+    },
+
+    setNote(note) {
+      const op = requireClientMethod(client, "updateNote");
+      return mutate(
+        // Optimistic: note is pure cart-level metadata, safe to patch.
+        (cart) => (cart ? { ...cart, note } : null),
+        (cartId) => op(cartId, note),
+        () => client.create([]),
+      );
+    },
+
     async refresh() {
       const cart = store.get().cart;
       if (!cart) return;
@@ -210,6 +261,31 @@ export function createCartStore(options: CartStoreOptions): CartStore {
       });
     },
   };
+}
+
+type OptionalCartClientMethod =
+  | "updateGiftCardCodes"
+  | "updateBuyerIdentity"
+  | "updateAttributes"
+  | "updateNote";
+
+/**
+ * Resolve an optional `CartClient` method, throwing a clear error if the
+ * configured client does not implement it. Bound to the client so `this`
+ * stays correct.
+ */
+function requireClientMethod<K extends OptionalCartClientMethod>(
+  client: CartClient,
+  method: K,
+): NonNullable<CartClient[K]> {
+  const fn = client[method];
+  if (typeof fn !== "function") {
+    throw new Error(
+      `CartClient does not implement "${method}". ` +
+        `Use StorefrontCartClient or provide an implementation.`,
+    );
+  }
+  return fn.bind(client) as NonNullable<CartClient[K]>;
 }
 
 /** A provisional, client-only empty cart used for optimistic display only. */

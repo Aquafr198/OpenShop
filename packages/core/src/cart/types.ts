@@ -36,6 +36,20 @@ export interface CartCost {
   totalDutyAmount?: MoneyV2 | null;
 }
 
+export interface AppliedGiftCard {
+  id: string;
+  lastCharacters: string;
+  amountUsed: MoneyV2;
+  balance: MoneyV2;
+}
+
+export interface CartBuyerIdentity {
+  countryCode?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  customer?: { id: string } | null;
+}
+
 export interface Cart {
   id: string;
   checkoutUrl: string;
@@ -45,6 +59,23 @@ export interface Cart {
   discountCodes: { code: string; applicable: boolean }[];
   attributes: { key: string; value: string }[];
   note?: string | null;
+  buyerIdentity?: CartBuyerIdentity | null;
+  appliedGiftCards?: AppliedGiftCard[];
+}
+
+/**
+ * Input for `cartBuyerIdentityUpdate`. Drives market pricing (`countryCode`),
+ * authenticated checkout (`customerAccessToken`), and B2B (`companyLocationId`).
+ */
+export interface CartBuyerIdentityInput {
+  email?: string;
+  phone?: string;
+  /** ISO country code (e.g. "US") — sets the market for pricing. */
+  countryCode?: string;
+  /** Customer Account API access token, to attribute the cart to a customer. */
+  customerAccessToken?: string;
+  /** B2B: the company location placing the order. */
+  companyLocationId?: string;
 }
 
 /** Status of the cart relative to the server. */
@@ -88,6 +119,15 @@ export interface CartClient {
   updateLines(cartId: string, lines: CartLineUpdateInput[]): Promise<Cart>;
   removeLines(cartId: string, lineIds: string[]): Promise<Cart>;
   updateDiscountCodes(cartId: string, codes: string[]): Promise<Cart>;
+  updateGiftCardCodes?(cartId: string, codes: string[]): Promise<Cart>;
+  updateBuyerIdentity?(
+    cartId: string,
+    buyerIdentity: CartBuyerIdentityInput,
+  ): Promise<Cart>;
+  updateAttributes?(
+    cartId: string,
+    attributes: { key: string; value: string }[],
+  ): Promise<Cart>;
   updateNote?(cartId: string, note: string): Promise<Cart>;
   get(cartId: string): Promise<Cart | null>;
 }

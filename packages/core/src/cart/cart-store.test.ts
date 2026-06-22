@@ -58,6 +58,12 @@ function mockClient(): CartClient {
     updateLines: vi.fn(async () => makeCart()),
     removeLines: vi.fn(async () => makeCart()),
     updateDiscountCodes: vi.fn(async () => makeCart()),
+    updateGiftCardCodes: vi.fn(async () => makeCart()),
+    updateBuyerIdentity: vi.fn(async () =>
+      makeCart({ buyerIdentity: { countryCode: "FR" } }),
+    ),
+    updateAttributes: vi.fn(async (_id, attributes) => makeCart({ attributes })),
+    updateNote: vi.fn(async (_id, note) => makeCart({ note })),
     get: vi.fn(async () => makeCart()),
   };
 }
@@ -155,5 +161,66 @@ describe("createCartStore", () => {
     const store = createCartStore({ client, persistence });
     await store.addLine({ merchandiseId: "v1" });
     expect(storage.get("cart")).toBe("gid://shopify/Cart/1");
+  });
+
+  it("sets the note optimistically and via the client", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+
+    const promise = store.setNote("Leave at door");
+    // Optimistic patch is synchronous.
+    expect(store.get().cart?.note).toBe("Leave at door");
+    await promise;
+    expect(client.updateNote).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      "Leave at door",
+    );
+  });
+
+  it("sets attributes optimistically and via the client", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+    const attrs = [{ key: "gift_wrap", value: "yes" }];
+    const promise = store.setAttributes(attrs);
+    expect(store.get().cart?.attributes).toEqual(attrs);
+    await promise;
+    expect(client.updateAttributes).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      attrs,
+    );
+  });
+
+  it("sets buyer identity and gift card codes via the client", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+    await store.setBuyerIdentity({ countryCode: "FR" });
+    expect(client.updateBuyerIdentity).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      { countryCode: "FR" },
+    );
+    await store.setGiftCardCodes(["GIFT-1"]);
+    expect(client.updateGiftCardCodes).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      ["GIFT-1"],
+    );
+  });
+
+  it("throws a clear error when the client lacks an optional method", () => {
+    const client = mockClient();
+    delete client.updateNote;
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+    expect(() => store.setNote("x")).toThrow(/does not implement/);
   });
 });
