@@ -1,6 +1,6 @@
 {
   "name": "@openshop/core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Framework-agnostic headless commerce core for OpenShop.",
   "license": "MIT",
   "type": "module",
