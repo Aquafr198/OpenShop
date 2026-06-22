@@ -48,7 +48,9 @@ describe("renderRichText", () => {
     expect(html).toContain("<strong>bold</strong>");
     expect(html).toContain("<em>italic</em>");
     expect(html).toContain("<ul><li>One</li><li>Two</li></ul>");
-    expect(html).toContain('<a href="https://example.com" target="_blank">Click</a>');
+    expect(html).toContain(
+      '<a href="https://example.com" target="_blank">Click</a>',
+    );
   });
 
   it("accepts a JSON string", () => {
@@ -60,7 +62,10 @@ describe("renderRichText", () => {
     const html = renderRichText({
       type: "root",
       children: [
-        { type: "paragraph", children: [{ type: "text", value: "<script>xss</script>" }] },
+        {
+          type: "paragraph",
+          children: [{ type: "text", value: "<script>xss</script>" }],
+        },
       ],
     });
     expect(html).not.toContain("<script>");

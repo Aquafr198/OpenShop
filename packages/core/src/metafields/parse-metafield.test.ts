@@ -3,13 +3,19 @@ import { parseMetafield } from "./parse-metafield.js";
 
 describe("parseMetafield — scalar types", () => {
   it("parses text fields as strings", () => {
-    expect(parseMetafield({ type: "single_line_text_field", value: "Hello" })).toBe("Hello");
-    expect(parseMetafield({ type: "multi_line_text_field", value: "a\nb" })).toBe("a\nb");
+    expect(
+      parseMetafield({ type: "single_line_text_field", value: "Hello" }),
+    ).toBe("Hello");
+    expect(
+      parseMetafield({ type: "multi_line_text_field", value: "a\nb" }),
+    ).toBe("a\nb");
   });
 
   it("parses integers and decimals as numbers", () => {
     expect(parseMetafield({ type: "number_integer", value: "42" })).toBe(42);
-    expect(parseMetafield({ type: "number_decimal", value: "3.14" })).toBe(3.14);
+    expect(parseMetafield({ type: "number_decimal", value: "3.14" })).toBe(
+      3.14,
+    );
   });
 
   it("parses booleans", () => {
@@ -18,22 +24,33 @@ describe("parseMetafield — scalar types", () => {
   });
 
   it("parses json", () => {
-    expect(parseMetafield({ type: "json", value: '{"a":1}' })).toEqual({ a: 1 });
+    expect(parseMetafield({ type: "json", value: '{"a":1}' })).toEqual({
+      a: 1,
+    });
   });
 
   it("parses date and date_time as Date", () => {
     const d = parseMetafield<Date>({ type: "date", value: "2026-01-15" });
     expect(d).toBeInstanceOf(Date);
     expect((d as Date).getUTCFullYear()).toBe(2026);
-    expect(parseMetafield({ type: "date_time", value: "2026-01-15T10:00:00Z" })).toBeInstanceOf(Date);
+    expect(
+      parseMetafield({ type: "date_time", value: "2026-01-15T10:00:00Z" }),
+    ).toBeInstanceOf(Date);
   });
 
   it("parses dimension / volume / weight as measurements", () => {
-    expect(parseMetafield({ type: "dimension", value: '{"value":12.5,"unit":"cm"}' })).toEqual({
+    expect(
+      parseMetafield({
+        type: "dimension",
+        value: '{"value":12.5,"unit":"cm"}',
+      }),
+    ).toEqual({
       value: 12.5,
       unit: "cm",
     });
-    expect(parseMetafield({ type: "weight", value: '{"value":2,"unit":"kg"}' })).toEqual({
+    expect(
+      parseMetafield({ type: "weight", value: '{"value":2,"unit":"kg"}' }),
+    ).toEqual({
       value: 2,
       unit: "kg",
     });
@@ -41,7 +58,10 @@ describe("parseMetafield — scalar types", () => {
 
   it("parses rating", () => {
     expect(
-      parseMetafield({ type: "rating", value: '{"value":4.5,"scale_min":1,"scale_max":5}' }),
+      parseMetafield({
+        type: "rating",
+        value: '{"value":4.5,"scale_min":1,"scale_max":5}',
+      }),
     ).toEqual({ value: 4.5, scaleMin: 1, scaleMax: 5 });
   });
 
@@ -59,13 +79,18 @@ describe("parseMetafield — scalar types", () => {
 
   it("parses money into MoneyV2", () => {
     expect(
-      parseMetafield({ type: "money", value: '{"amount":"19.99","currency_code":"USD"}' }),
+      parseMetafield({
+        type: "money",
+        value: '{"amount":"19.99","currency_code":"USD"}',
+      }),
     ).toEqual({ amount: "19.99", currencyCode: "USD" });
   });
 
   it("parses color, url, id as strings", () => {
     expect(parseMetafield({ type: "color", value: "#ff0000" })).toBe("#ff0000");
-    expect(parseMetafield({ type: "url", value: "https://x.com" })).toBe("https://x.com");
+    expect(parseMetafield({ type: "url", value: "https://x.com" })).toBe(
+      "https://x.com",
+    );
     expect(parseMetafield({ type: "id", value: "abc" })).toBe("abc");
   });
 });
@@ -73,23 +98,29 @@ describe("parseMetafield — scalar types", () => {
 describe("parseMetafield — list types", () => {
   it("parses list.single_line_text_field", () => {
     expect(
-      parseMetafield({ type: "list.single_line_text_field", value: '["a","b","c"]' }),
+      parseMetafield({
+        type: "list.single_line_text_field",
+        value: '["a","b","c"]',
+      }),
     ).toEqual(["a", "b", "c"]);
   });
 
   it("parses list.number_integer", () => {
-    expect(parseMetafield({ type: "list.number_integer", value: "[1,2,3]" })).toEqual([1, 2, 3]);
+    expect(
+      parseMetafield({ type: "list.number_integer", value: "[1,2,3]" }),
+    ).toEqual([1, 2, 3]);
   });
 
   it("parses list.color", () => {
-    expect(parseMetafield({ type: "list.color", value: '["#fff","#000"]' })).toEqual([
-      "#fff",
-      "#000",
-    ]);
+    expect(
+      parseMetafield({ type: "list.color", value: '["#fff","#000"]' }),
+    ).toEqual(["#fff", "#000"]);
   });
 
   it("returns null for a non-array list value", () => {
-    expect(parseMetafield({ type: "list.number_integer", value: "not json" })).toBeNull();
+    expect(
+      parseMetafield({ type: "list.number_integer", value: "not json" }),
+    ).toBeNull();
   });
 
   it("parses a list of structured elements (list.money via re-stringify path)", () => {
@@ -122,12 +153,19 @@ describe("parseMetafield — references", () => {
   it("returns the resolved single reference node when present", () => {
     const node = { id: "gid://shopify/Product/1", title: "Tee" };
     expect(
-      parseMetafield({ type: "product_reference", value: "gid://shopify/Product/1", reference: node }),
+      parseMetafield({
+        type: "product_reference",
+        value: "gid://shopify/Product/1",
+        reference: node,
+      }),
     ).toEqual(node);
   });
 
   it("returns resolved nodes for a list reference", () => {
-    const nodes = [{ id: "gid://shopify/Product/1" }, { id: "gid://shopify/Product/2" }];
+    const nodes = [
+      { id: "gid://shopify/Product/1" },
+      { id: "gid://shopify/Product/2" },
+    ];
     expect(
       parseMetafield({
         type: "list.product_reference",
@@ -139,7 +177,10 @@ describe("parseMetafield — references", () => {
 
   it("falls back to the gid string when no node is resolved", () => {
     expect(
-      parseMetafield({ type: "product_reference", value: "gid://shopify/Product/9" }),
+      parseMetafield({
+        type: "product_reference",
+        value: "gid://shopify/Product/9",
+      }),
     ).toBe("gid://shopify/Product/9");
   });
 
@@ -163,7 +204,9 @@ describe("parseMetafield — totality (never throws)", () => {
   });
 
   it("returns the raw value for an unknown type", () => {
-    expect(parseMetafield({ type: "some_future_type", value: "raw" })).toBe("raw");
+    expect(parseMetafield({ type: "some_future_type", value: "raw" })).toBe(
+      "raw",
+    );
   });
 
   it("never throws for arbitrary garbage input", () => {

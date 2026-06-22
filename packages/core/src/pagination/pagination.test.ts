@@ -42,9 +42,7 @@ describe("getPaginationLinks", () => {
       startCursor: "start1",
       endCursor: "end1",
     });
-    expect(links.nextUrl).toBe(
-      "/collections/all?cursor=end1&direction=next",
-    );
+    expect(links.nextUrl).toBe("/collections/all?cursor=end1&direction=next");
     expect(links.previousUrl).toBe(
       "/collections/all?cursor=start1&direction=previous",
     );

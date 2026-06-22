@@ -53,10 +53,17 @@ export type MediaNode =
   | ExternalVideoNode
   | Model3dNode;
 
-export type MediaKind = "image" | "video" | "external-video" | "model-3d" | "unknown";
+export type MediaKind =
+  | "image"
+  | "video"
+  | "external-video"
+  | "model-3d"
+  | "unknown";
 
 /** Discriminate a media node's kind (safe for unknown types). */
-export function mediaKind(node: { __typename?: string } | null | undefined): MediaKind {
+export function mediaKind(
+  node: { __typename?: string } | null | undefined,
+): MediaKind {
   switch (node?.__typename) {
     case "MediaImage":
       return "image";
@@ -71,7 +78,8 @@ export function mediaKind(node: { __typename?: string } | null | undefined): Med
   }
 }
 
-const YOUTUBE_ID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/;
+const YOUTUBE_ID =
+  /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/;
 const VIMEO_ID = /vimeo\.com\/(?:video\/)?(\d+)/;
 
 function isSafeHttpUrl(url: string): boolean {

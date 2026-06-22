@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const TEMPLATES_DIR = resolve(import.meta.dirname, "..", "templates");
@@ -30,7 +30,9 @@ describe("create-openshop templates", () => {
   });
 
   it("templates have placeholder tokens for project name", () => {
-    const pkg = require(join(TEMPLATES_DIR, "node", "package.json"));
+    const pkg = JSON.parse(
+      readFileSync(join(TEMPLATES_DIR, "node", "package.json"), "utf8"),
+    );
     expect(pkg.name).toBe("{{PROJECT_NAME}}");
   });
 });

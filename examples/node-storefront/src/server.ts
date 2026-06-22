@@ -3,7 +3,11 @@
  *   pnpm --filter @openshop/example-node-storefront start
  */
 
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import { createApp } from "./app.js";
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -36,7 +40,10 @@ function readBody(req: IncomingMessage): Promise<Buffer> {
   });
 }
 
-async function writeResponse(res: ServerResponse, response: Response): Promise<void> {
+async function writeResponse(
+  res: ServerResponse,
+  response: Response,
+): Promise<void> {
   const headers = new Headers(response.headers);
   const setCookies =
     typeof headers.getSetCookie === "function" ? headers.getSetCookie() : [];

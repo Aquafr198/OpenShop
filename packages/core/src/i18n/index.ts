@@ -6,7 +6,4 @@ export {
   type LocaleStrategy,
   type LocaleMatch,
 } from "./locale.js";
-export {
-  parseAcceptLanguage,
-  matchAcceptLanguage,
-} from "./accept-language.js";
+export { parseAcceptLanguage, matchAcceptLanguage } from "./accept-language.js";

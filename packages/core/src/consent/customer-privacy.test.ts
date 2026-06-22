@@ -9,8 +9,18 @@ import {
 describe("mapVisitorConsent", () => {
   it("maps Shopify tri-state to booleans", () => {
     expect(
-      mapVisitorConsent({ analytics: "yes", marketing: "no", preferences: "", sale_of_data: "yes" }),
-    ).toEqual({ analytics: true, marketing: false, preferences: false, sale_of_data: true });
+      mapVisitorConsent({
+        analytics: "yes",
+        marketing: "no",
+        preferences: "",
+        sale_of_data: "yes",
+      }),
+    ).toEqual({
+      analytics: true,
+      marketing: false,
+      preferences: false,
+      sale_of_data: true,
+    });
   });
 });
 
@@ -67,7 +77,9 @@ describe("connectCustomerPrivacy", () => {
     setConsent.mockClear();
     off();
     target.dispatchEvent(
-      new CustomEvent("visitorConsentCollected", { detail: { analytics: "no" } }),
+      new CustomEvent("visitorConsentCollected", {
+        detail: { analytics: "no" },
+      }),
     );
     expect(setConsent).not.toHaveBeenCalled();
   });

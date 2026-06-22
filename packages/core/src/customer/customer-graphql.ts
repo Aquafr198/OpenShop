@@ -167,10 +167,22 @@ export function buildCustomerDocuments(options: CustomerDocumentOptions = {}) {
     { address: AddressInput; defaultAddress?: boolean }
   >`
     ${ADDRESS_FIELDS}
-    mutation AddressCreate($address: CustomerAddressInput!, $defaultAddress: Boolean) {
-      customerAddressCreate(address: $address, defaultAddress: $defaultAddress) {
-        customerAddress { ...AddressFields }
-        userErrors { field message code }
+    mutation AddressCreate(
+      $address: CustomerAddressInput!
+      $defaultAddress: Boolean
+    ) {
+      customerAddressCreate(
+        address: $address
+        defaultAddress: $defaultAddress
+      ) {
+        customerAddress {
+          ...AddressFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -185,10 +197,24 @@ export function buildCustomerDocuments(options: CustomerDocumentOptions = {}) {
     { addressId: string; address: AddressInput; defaultAddress?: boolean }
   >`
     ${ADDRESS_FIELDS}
-    mutation AddressUpdate($addressId: ID!, $address: CustomerAddressInput!, $defaultAddress: Boolean) {
-      customerAddressUpdate(addressId: $addressId, address: $address, defaultAddress: $defaultAddress) {
-        customerAddress { ...AddressFields }
-        userErrors { field message code }
+    mutation AddressUpdate(
+      $addressId: ID!
+      $address: CustomerAddressInput!
+      $defaultAddress: Boolean
+    ) {
+      customerAddressUpdate(
+        addressId: $addressId
+        address: $address
+        defaultAddress: $defaultAddress
+      ) {
+        customerAddress {
+          ...AddressFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -205,7 +231,11 @@ export function buildCustomerDocuments(options: CustomerDocumentOptions = {}) {
     mutation AddressDelete($addressId: ID!) {
       customerAddressDelete(addressId: $addressId) {
         deletedAddressId
-        userErrors { field message code }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;

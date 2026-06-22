@@ -14,7 +14,10 @@ function nonceValue(): string {
   crypto.getRandomValues(bytes);
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function shopifyDefaults(nonce: string): CspDirectives {
@@ -33,7 +36,10 @@ function shopifyDefaults(nonce: string): CspDirectives {
 }
 
 /** Merge user directives into the defaults (user values replace per-directive). */
-function mergeDirectives(base: CspDirectives, extra?: CspDirectives): CspDirectives {
+function mergeDirectives(
+  base: CspDirectives,
+  extra?: CspDirectives,
+): CspDirectives {
   if (!extra) return base;
   const out: CspDirectives = { ...base };
   for (const [directive, values] of Object.entries(extra)) {
@@ -45,7 +51,9 @@ function mergeDirectives(base: CspDirectives, extra?: CspDirectives): CspDirecti
 function serialize(directives: CspDirectives): string {
   return Object.entries(directives)
     .map(([directive, values]) => {
-      const tokens = values.filter((v): v is string => v !== false && v !== true);
+      const tokens = values.filter(
+        (v): v is string => v !== false && v !== true,
+      );
       // A directive present with `true` and no sources (e.g. upgrade-insecure-requests).
       const flagOnly = values.length > 0 && values.every((v) => v === true);
       return flagOnly ? directive : `${directive} ${tokens.join(" ")}`;
@@ -72,6 +80,9 @@ export function createContentSecurityPolicy(
   options: CreateCspOptions = {},
 ): ContentSecurityPolicy {
   const nonce = options.nonce ?? nonceValue();
-  const directives = mergeDirectives(shopifyDefaults(nonce), options.directives);
+  const directives = mergeDirectives(
+    shopifyDefaults(nonce),
+    options.directives,
+  );
   return { nonce, header: serialize(directives), directives };
 }

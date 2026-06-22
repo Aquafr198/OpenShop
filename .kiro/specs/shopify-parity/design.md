@@ -10,13 +10,13 @@ where possible, and IO injected for testability.
 
 New `@openshop/core` subpath exports introduced by this spec:
 
-| Subpath | Module | Requirement |
-| --- | --- | --- |
-| `@openshop/core/metafields` | metafield parsing | R1 |
-| `@openshop/core/analytics-shopify` | Shopify Monorail analytics + tracking | R2 |
-| `@openshop/core/catalog` (extended) | product options + variant decoder | R3 |
-| `@openshop/core/media` | media URL/embed helpers | R4 |
-| binding packages | cart UI + media components | R4, R5 |
+| Subpath                             | Module                                | Requirement |
+| ----------------------------------- | ------------------------------------- | ----------- |
+| `@openshop/core/metafields`         | metafield parsing                     | R1          |
+| `@openshop/core/analytics-shopify`  | Shopify Monorail analytics + tracking | R2          |
+| `@openshop/core/catalog` (extended) | product options + variant decoder     | R3          |
+| `@openshop/core/media`              | media URL/embed helpers               | R4          |
+| binding packages                    | cart UI + media components            | R4, R5      |
 
 A key correctness note drives R2: Shopify **deprecated `_shopify_y`/`_shopify_s`
 on 2026-04-30**. The current model uses `uniqueToken` (former `_y`) and
@@ -59,19 +59,23 @@ Dependencies between new modules are one-directional and acyclic:
 
 ```ts
 export interface RawMetafield {
-  type: string;                 // e.g. "number_integer", "list.color"
-  value: string;                // raw stringified value
-  references?: { nodes: unknown[] } | null;  // for *_reference (when queried)
+  type: string; // e.g. "number_integer", "list.color"
+  value: string; // raw stringified value
+  references?: { nodes: unknown[] } | null; // for *_reference (when queried)
   reference?: unknown | null;
 }
 
 export type ParsedMetafield =
-  | string | number | boolean | Date | null
+  | string
+  | number
+  | boolean
+  | Date
+  | null
   | MoneyV2
-  | { value: number; unit: string }                       // dimension/volume/weight
+  | { value: number; unit: string } // dimension/volume/weight
   | { value: number; scaleMin: number; scaleMax: number } // rating
-  | unknown                                               // json / reference node
-  | ParsedMetafield[];                                    // list.*
+  | unknown // json / reference node
+  | ParsedMetafield[]; // list.*
 
 export function parseMetafield<T = ParsedMetafield>(field: RawMetafield): T;
 ```
@@ -91,11 +95,13 @@ Current-model tracking identifiers (R2.6):
 ```ts
 export interface TrackingValues {
   uniqueToken: string | null; // former _shopify_y
-  visitToken: string | null;  // former _shopify_s
+  visitToken: string | null; // former _shopify_s
 }
 
 // Reads current cookies if present (incl. legacy fallback), else null.
-export function readTrackingValues(cookieHeaderOrDocument?: string): TrackingValues;
+export function readTrackingValues(
+  cookieHeaderOrDocument?: string,
+): TrackingValues;
 ```
 
 Event mapping (R2.2):
@@ -109,7 +115,7 @@ export type ShopifyAnalyticsEvent =
   | { type: "add_to_cart"; payload: CartPayload };
 
 export interface ShopifyAnalyticsContext {
-  shopId: string;            // gid://shopify/Shop/123
+  shopId: string; // gid://shopify/Shop/123
   currency: string;
   acceptLanguage?: string;
   hasUserConsent: boolean;
@@ -126,7 +132,9 @@ export interface AnalyticsTransport {
 }
 // Default: Monorail transport posting to monorail-edge.shopifysvc.com,
 // preferring navigator.sendBeacon, falling back to fetch(keepalive), then no-op.
-export function createMonorailTransport(opts?: { fetch?: typeof fetch }): AnalyticsTransport;
+export function createMonorailTransport(opts?: {
+  fetch?: typeof fetch;
+}): AnalyticsTransport;
 ```
 
 Orchestrator (R2.1, R2.4, R2.5) — bridges the existing consent-aware
@@ -134,7 +142,7 @@ Orchestrator (R2.1, R2.4, R2.5) — bridges the existing consent-aware
 
 ```ts
 export function connectShopifyAnalytics(args: {
-  analytics: Analytics;                 // existing consent-aware pub/sub
+  analytics: Analytics; // existing consent-aware pub/sub
   context: () => ShopifyAnalyticsContext;
   transport?: AnalyticsTransport;
 }): () => void; // returns unsubscribe
@@ -173,16 +181,17 @@ stays O(depth) for 2000-variant products).
 export interface ProductOptionValueState {
   name: string;
   selected: boolean;
-  available: boolean;        // from encodedVariantAvailability
-  exists: boolean;           // from encodedVariantExistence
+  available: boolean; // from encodedVariantAvailability
+  exists: boolean; // from encodedVariantExistence
   isDifferentProduct: boolean; // combined-listing child -> different handle
-  handle?: string;           // target handle when isDifferentProduct
-  variantUriQuery: string;   // search params to select this value
+  handle?: string; // target handle when isDifferentProduct
+  variantUriQuery: string; // search params to select this value
   firstSelectableVariant?: ProductVariant;
 }
 
-export function getProductOptions(product: ProductWithEncodedVariants):
-  { name: string; values: ProductOptionValueState[] }[];
+export function getProductOptions(
+  product: ProductWithEncodedVariants,
+): { name: string; values: ProductOptionValueState[] }[];
 ```
 
 Backward compatibility (R3.7): the existing `getOptionValueStates` /
@@ -195,9 +204,22 @@ path is used automatically; otherwise the existing brute-force path runs.
 ```ts
 export type MediaNode =
   | { __typename: "MediaImage"; image: Image }
-  | { __typename: "Video"; sources: { url: string; mimeType: string }[]; previewImage?: Image }
-  | { __typename: "ExternalVideo"; host: "YOUTUBE" | "VIMEO"; embeddedUrl?: string; originUrl?: string }
-  | { __typename: "Model3d"; sources: { url: string; mimeType: string }[]; alt?: string };
+  | {
+      __typename: "Video";
+      sources: { url: string; mimeType: string }[];
+      previewImage?: Image;
+    }
+  | {
+      __typename: "ExternalVideo";
+      host: "YOUTUBE" | "VIMEO";
+      embeddedUrl?: string;
+      originUrl?: string;
+    }
+  | {
+      __typename: "Model3d";
+      sources: { url: string; mimeType: string }[];
+      alt?: string;
+    };
 
 export function externalVideoEmbedUrl(node): string | null; // builds yt/vimeo embed
 ```
@@ -332,4 +354,3 @@ re-checked against shopify.dev for API version `2025-10`:
 Implementation order follows priority: R1 → R2 → R3 → R4 → R5. Each requirement
 is an independent, releasable unit (own module, own tests, own changeset),
 so the work can ship incrementally without a big-bang merge.
-

@@ -28,6 +28,9 @@ export interface MoneyProps extends FormatMoneyOptions {
 
 /** Renders a formatted money amount. */
 export function Money({ data, as = "span", locale, numberFormat }: MoneyProps) {
-  const formatted = useMoney(data, { ...(locale ? { locale } : {}), ...(numberFormat ? { numberFormat } : {}) });
+  const formatted = useMoney(data, {
+    ...(locale ? { locale } : {}),
+    ...(numberFormat ? { numberFormat } : {}),
+  });
   return createElement(as, null, formatted);
 }

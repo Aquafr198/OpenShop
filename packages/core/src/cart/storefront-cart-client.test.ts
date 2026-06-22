@@ -35,7 +35,12 @@ function rawCart(overrides: Partial<RawCart> = {}): RawCart {
             title: "M / Black",
             availableForSale: true,
             price: { amount: "20.00", currencyCode: "USD" },
-            image: { url: "https://img/x.jpg", altText: "Tee", width: 800, height: 800 },
+            image: {
+              url: "https://img/x.jpg",
+              altText: "Tee",
+              width: 800,
+              height: 800,
+            },
             selectedOptions: [
               { name: "Size", value: "M" },
               { name: "Color", value: "Black" },
@@ -101,7 +106,9 @@ describe("StorefrontCartClient", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
     expect(body.variables.cartId).toBe("gid://shopify/Cart/1");
-    expect(body.variables.lines).toEqual([{ merchandiseId: "v2", quantity: 2 }]);
+    expect(body.variables.lines).toEqual([
+      { merchandiseId: "v2", quantity: 2 },
+    ]);
   });
 
   it("throws CartUserErrorException on userErrors", async () => {

@@ -13,7 +13,9 @@ export interface ProductJsonLdInput {
   availableForSale?: boolean;
 }
 
-export function productJsonLd(input: ProductJsonLdInput): Record<string, unknown> {
+export function productJsonLd(
+  input: ProductJsonLdInput,
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -39,7 +41,9 @@ export interface BreadcrumbItem {
   url: string;
 }
 
-export function breadcrumbJsonLd(items: BreadcrumbItem[]): Record<string, unknown> {
+export function breadcrumbJsonLd(
+  items: BreadcrumbItem[],
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

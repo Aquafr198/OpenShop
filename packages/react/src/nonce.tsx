@@ -1,4 +1,9 @@
-import { createContext, createElement, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  type ReactNode,
+} from "react";
 
 const NonceContext = createContext<string | undefined>(undefined);
 

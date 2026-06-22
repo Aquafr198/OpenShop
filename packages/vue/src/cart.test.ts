@@ -41,7 +41,11 @@ describe("Vue cart composables", () => {
         return { count, addLine };
       },
       render() {
-        return h("div", { onClick: () => this.addLine({ merchandiseId: "v1" }) }, String(this.count));
+        return h(
+          "div",
+          { onClick: () => this.addLine({ merchandiseId: "v1" }) },
+          String(this.count),
+        );
       },
     });
 

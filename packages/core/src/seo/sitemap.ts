@@ -32,7 +32,8 @@ function esc(value: string): string {
 function entryXml(entry: SitemapEntry): string {
   const parts = [`    <loc>${esc(entry.loc)}</loc>`];
   if (entry.lastmod) parts.push(`    <lastmod>${esc(entry.lastmod)}</lastmod>`);
-  if (entry.changefreq) parts.push(`    <changefreq>${entry.changefreq}</changefreq>`);
+  if (entry.changefreq)
+    parts.push(`    <changefreq>${entry.changefreq}</changefreq>`);
   if (entry.priority !== undefined) {
     parts.push(`    <priority>${entry.priority.toFixed(1)}</priority>`);
   }
@@ -69,7 +70,9 @@ export interface SitemapIndexEntry {
 export function renderSitemapIndex(sitemaps: SitemapIndexEntry[]): string {
   const items = sitemaps
     .map((s) => {
-      const lastmod = s.lastmod ? `\n    <lastmod>${esc(s.lastmod)}</lastmod>` : "";
+      const lastmod = s.lastmod
+        ? `\n    <lastmod>${esc(s.lastmod)}</lastmod>`
+        : "";
       return `  <sitemap>\n    <loc>${esc(s.loc)}</loc>${lastmod}\n  </sitemap>`;
     })
     .join("\n");

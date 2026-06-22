@@ -307,10 +307,13 @@ function recompute(cart: Cart): Cart {
   const totalQuantity = cart.lines.reduce((sum, l) => sum + l.quantity, 0);
   let total: Money | null = null;
   for (const line of cart.lines) {
-    const lineTotal = Money.from(line.merchandise.price).multiply(line.quantity);
+    const lineTotal = Money.from(line.merchandise.price).multiply(
+      line.quantity,
+    );
     total = total ? total.add(lineTotal) : lineTotal;
   }
-  const subtotal = total ?? Money.fromMinorUnits(0, cart.cost.totalAmount.currencyCode);
+  const subtotal =
+    total ?? Money.fromMinorUnits(0, cart.cost.totalAmount.currencyCode);
   return {
     ...cart,
     totalQuantity,
@@ -342,13 +345,22 @@ function applyOptimisticAdd(cart: Cart | null, inputs: CartLineInput[]): Cart {
           id: input.merchandiseId,
           title: "",
           productTitle: "",
-          price: { amount: "0", currencyCode: base.cost.totalAmount.currencyCode },
+          price: {
+            amount: "0",
+            currencyCode: base.cost.totalAmount.currencyCode,
+          },
           availableForSale: true,
           selectedOptions: [],
         },
         cost: {
-          totalAmount: { amount: "0", currencyCode: base.cost.totalAmount.currencyCode },
-          amountPerQuantity: { amount: "0", currencyCode: base.cost.totalAmount.currencyCode },
+          totalAmount: {
+            amount: "0",
+            currencyCode: base.cost.totalAmount.currencyCode,
+          },
+          amountPerQuantity: {
+            amount: "0",
+            currencyCode: base.cost.totalAmount.currencyCode,
+          },
         },
         ...(input.attributes ? { attributes: input.attributes } : {}),
       });

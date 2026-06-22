@@ -1,11 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { createStorefrontClient } from "../storefront/client.js";
 import { SearchClient } from "./search-client.js";
-import {
-  buildProductFilters,
-  facetInputs,
-  mergeFilters,
-} from "./filters.js";
+import { buildProductFilters, facetInputs, mergeFilters } from "./filters.js";
 import type { SearchFilterValue } from "./search-graphql.js";
 
 function rawProduct(id: string, title: string) {
@@ -72,9 +68,17 @@ describe("buildProductFilters", () => {
 describe("facetInputs / mergeFilters", () => {
   it("extracts facet inputs and merges groups", () => {
     const values: SearchFilterValue[] = [
-      { id: "1", label: "Black", count: 3, input: { variantOption: { name: "Color", value: "Black" } } },
+      {
+        id: "1",
+        label: "Black",
+        count: 3,
+        input: { variantOption: { name: "Color", value: "Black" } },
+      },
     ];
-    const merged = mergeFilters(facetInputs(values), buildProductFilters({ available: true }));
+    const merged = mergeFilters(
+      facetInputs(values),
+      buildProductFilters({ available: true }),
+    );
     expect(merged).toHaveLength(2);
     expect(merged).toContainEqual({ available: true });
   });
@@ -92,7 +96,15 @@ describe("SearchClient.predictive", () => {
     const { client } = makeClient({
       PredictiveSearch: {
         predictiveSearch: {
-          products: [{ id: "p1", title: "Tee", handle: "tee", featuredImage: null, priceRange: null }],
+          products: [
+            {
+              id: "p1",
+              title: "Tee",
+              handle: "tee",
+              featuredImage: null,
+              priceRange: null,
+            },
+          ],
           collections: [{ id: "c1", title: "Summer", handle: "summer" }],
           pages: [],
           articles: [],

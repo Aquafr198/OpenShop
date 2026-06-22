@@ -6,7 +6,13 @@ import { usePredictiveSearch } from "./search.js";
 function result(title: string): PredictiveSearchResult {
   return {
     products: [
-      { id: title, title, handle: title.toLowerCase(), featuredImage: null, priceRange: null },
+      {
+        id: title,
+        title,
+        handle: title.toLowerCase(),
+        featuredImage: null,
+        priceRange: null,
+      },
     ],
     collections: [],
     pages: [],

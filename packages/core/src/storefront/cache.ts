@@ -80,7 +80,9 @@ type Refresher<T> = () => Promise<T>;
 export class SwrCache {
   private inflight = new Map<string, Promise<unknown>>();
 
-  constructor(private readonly adapter: CacheAdapter = new MemoryCacheAdapter()) {}
+  constructor(
+    private readonly adapter: CacheAdapter = new MemoryCacheAdapter(),
+  ) {}
 
   async resolve<T>(
     key: string,

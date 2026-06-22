@@ -1,4 +1,9 @@
-import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from "vue";
+import {
+  computed,
+  toValue,
+  type ComputedRef,
+  type MaybeRefOrGetter,
+} from "vue";
 import {
   formatMoney,
   type FormatMoneyOptions,

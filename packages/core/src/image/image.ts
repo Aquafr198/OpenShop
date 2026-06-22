@@ -21,7 +21,9 @@ const DEFAULT_SRCSET_WIDTHS = [320, 480, 640, 768, 960, 1280, 1920];
 export function isShopifyImage(url: string): boolean {
   try {
     const { hostname } = new URL(url);
-    return hostname === "cdn.shopify.com" || hostname.endsWith(".shopifycdn.com");
+    return (
+      hostname === "cdn.shopify.com" || hostname.endsWith(".shopifycdn.com")
+    );
   } catch {
     return false;
   }
@@ -31,7 +33,10 @@ export function isShopifyImage(url: string): boolean {
  * Apply transform params to a Shopify CDN URL. Non-Shopify URLs (or invalid
  * ones) are returned unchanged, so the helper is always safe to call.
  */
-export function imageUrl(src: string, transform: ShopifyImageTransform = {}): string {
+export function imageUrl(
+  src: string,
+  transform: ShopifyImageTransform = {},
+): string {
   if (!src) return src;
   let url: URL;
   try {
@@ -90,7 +95,10 @@ export interface ImageProps {
  * Build a ready-to-spread set of `<img>` attributes with a responsive srcset.
  * Framework-neutral — React/Vue/Svelte can all consume the returned object.
  */
-export function imageProps(src: string, input: ImagePropsInput = {}): ImageProps {
+export function imageProps(
+  src: string,
+  input: ImagePropsInput = {},
+): ImageProps {
   const { widths, sizes, alt, loading, width, height, crop } = input;
   const transform: ShopifyImageTransform = {};
   if (width !== undefined) transform.width = width;

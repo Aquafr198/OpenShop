@@ -80,7 +80,10 @@ export function getSeoTags(...inputs: Seo[]): SeoTag[] {
     tags.push({ tag: "title", attributes: {}, children: title, key: "title" });
     tags.push({
       tag: "meta",
-      attributes: { property: "og:title", content: seo.openGraph?.title ?? title },
+      attributes: {
+        property: "og:title",
+        content: seo.openGraph?.title ?? title,
+      },
       key: "og:title",
     });
   }
@@ -102,8 +105,19 @@ export function getSeoTags(...inputs: Seo[]): SeoTag[] {
   }
 
   if (seo.url) {
-    tags.push({ tag: "link", attributes: { rel: "canonical", href: seo.url }, key: "canonical" });
-    tags.push({ tag: "meta", attributes: { property: "og:url", content: seo.openGraph?.url ?? seo.url }, key: "og:url" });
+    tags.push({
+      tag: "link",
+      attributes: { rel: "canonical", href: seo.url },
+      key: "canonical",
+    });
+    tags.push({
+      tag: "meta",
+      attributes: {
+        property: "og:url",
+        content: seo.openGraph?.url ?? seo.url,
+      },
+      key: "og:url",
+    });
   }
 
   if (seo.robots && (seo.robots.noIndex || seo.robots.noFollow)) {
@@ -111,25 +125,57 @@ export function getSeoTags(...inputs: Seo[]): SeoTag[] {
       seo.robots.noIndex ? "noindex" : "index",
       seo.robots.noFollow ? "nofollow" : "follow",
     ].join(",");
-    tags.push({ tag: "meta", attributes: { name: "robots", content: directives }, key: "robots" });
+    tags.push({
+      tag: "meta",
+      attributes: { name: "robots", content: directives },
+      key: "robots",
+    });
   }
 
   const og = seo.openGraph ?? {};
-  if (og.type) tags.push({ tag: "meta", attributes: { property: "og:type", content: og.type }, key: "og:type" });
-  if (og.image) tags.push({ tag: "meta", attributes: { property: "og:image", content: og.image }, key: "og:image" });
-  if (og.siteName) tags.push({ tag: "meta", attributes: { property: "og:site_name", content: og.siteName }, key: "og:site_name" });
+  if (og.type)
+    tags.push({
+      tag: "meta",
+      attributes: { property: "og:type", content: og.type },
+      key: "og:type",
+    });
+  if (og.image)
+    tags.push({
+      tag: "meta",
+      attributes: { property: "og:image", content: og.image },
+      key: "og:image",
+    });
+  if (og.siteName)
+    tags.push({
+      tag: "meta",
+      attributes: { property: "og:site_name", content: og.siteName },
+      key: "og:site_name",
+    });
 
   const tw = seo.twitter ?? {};
   const twImage = tw.image ?? og.image;
   if (tw.card || twImage) {
     tags.push({
       tag: "meta",
-      attributes: { name: "twitter:card", content: tw.card ?? "summary_large_image" },
+      attributes: {
+        name: "twitter:card",
+        content: tw.card ?? "summary_large_image",
+      },
       key: "twitter:card",
     });
   }
-  if (tw.site) tags.push({ tag: "meta", attributes: { name: "twitter:site", content: tw.site }, key: "twitter:site" });
-  if (twImage) tags.push({ tag: "meta", attributes: { name: "twitter:image", content: twImage }, key: "twitter:image" });
+  if (tw.site)
+    tags.push({
+      tag: "meta",
+      attributes: { name: "twitter:site", content: tw.site },
+      key: "twitter:site",
+    });
+  if (twImage)
+    tags.push({
+      tag: "meta",
+      attributes: { name: "twitter:image", content: twImage },
+      key: "twitter:image",
+    });
 
   const jsonLdItems = seo.jsonLd
     ? Array.isArray(seo.jsonLd)
@@ -149,11 +195,17 @@ export function getSeoTags(...inputs: Seo[]): SeoTag[] {
 }
 
 function escapeAttr(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
 }
 
 function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /** Render SEO tags to an HTML string for plain server-side rendering. */
@@ -167,7 +219,9 @@ export function renderSeoTags(tags: SeoTag[]): string {
       if (t.tag === "meta" || t.tag === "link") return open;
       // script: JSON-LD must NOT be HTML-escaped beyond `<` to stay valid JSON.
       const body =
-        t.tag === "script" ? (t.children ?? "").replace(/</g, "\\u003c") : escapeText(t.children ?? "");
+        t.tag === "script"
+          ? (t.children ?? "").replace(/</g, "\\u003c")
+          : escapeText(t.children ?? "");
       return `${open}${body}</${t.tag}>`;
     })
     .join("\n");

@@ -8,8 +8,11 @@ export default async function HomePage() {
 
   return (
     <main style={{ maxWidth: 800, margin: "0 auto", padding: 20 }}>
-      <h1>{{PROJECT_NAME}}</h1>
-      <p>Your OpenShop storefront is running. Edit <code>.env</code> with your store credentials.</p>
+      <h1>{{ PROJECT_NAME }}</h1>
+      <p>
+        Your OpenShop storefront is running. Edit <code>.env</code> with your
+        store credentials.
+      </p>
 
       {product ? (
         <article>
@@ -25,12 +28,20 @@ export default async function HomePage() {
           <p>{product.description}</p>
           <p>
             <strong>
-              {formatMoney(product.variants[0]?.price ?? { amount: "0", currencyCode: "USD" })}
+              {formatMoney(
+                product.variants[0]?.price ?? {
+                  amount: "0",
+                  currencyCode: "USD",
+                },
+              )}
             </strong>
           </p>
         </article>
       ) : (
-        <p>No product found. Make sure your store has a product with handle &quot;classic-tee&quot;.</p>
+        <p>
+          No product found. Make sure your store has a product with handle
+          &quot;classic-tee&quot;.
+        </p>
       )}
     </main>
   );

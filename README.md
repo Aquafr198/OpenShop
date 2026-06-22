@@ -15,26 +15,26 @@ and reactivity built into the core from day one.
 
 ## Why OpenShop
 
-| Concern | How OpenShop handles it |
-| --- | --- |
-| **Framework lock-in** | A plain-TypeScript core with thin per-framework bindings. React ships today. |
-| **Runtime lock-in** | Depends only on the web platform (`fetch`). Runs anywhere. |
-| **Re-render storms** | Signals-style reactive store with selector subscriptions — components react only to the slice they read. |
-| **Flaky upstreams** | Built-in timeout, exponential backoff with jitter, and a circuit breaker. |
-| **Slow read pages** | Pluggable cache with stale-while-revalidate and a dogpile guard. |
-| **Money rounding bugs** | Integer-minor-unit arithmetic; never float math. |
-| **Privacy / consent** | Analytics buffer until consent is granted, per category. |
-| **Cart corruption** | Optimistic UI with serialized, server-reconciled mutations and rollback on failure. |
+| Concern                 | How OpenShop handles it                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Framework lock-in**   | A plain-TypeScript core with thin per-framework bindings. React ships today.                             |
+| **Runtime lock-in**     | Depends only on the web platform (`fetch`). Runs anywhere.                                               |
+| **Re-render storms**    | Signals-style reactive store with selector subscriptions — components react only to the slice they read. |
+| **Flaky upstreams**     | Built-in timeout, exponential backoff with jitter, and a circuit breaker.                                |
+| **Slow read pages**     | Pluggable cache with stale-while-revalidate and a dogpile guard.                                         |
+| **Money rounding bugs** | Integer-minor-unit arithmetic; never float math.                                                         |
+| **Privacy / consent**   | Analytics buffer until consent is granted, per category.                                                 |
+| **Cart corruption**     | Optimistic UI with serialized, server-reconciled mutations and rollback on failure.                      |
 
 ## Packages
 
-| Package | Description |
-| --- | --- |
-| [`@openshop/core`](./packages/core) | Framework-agnostic commerce primitives: reactive store, Storefront client, cart, catalog, customer accounts, search, i18n, server handlers, money, analytics. |
-| [`@openshop/react`](./packages/react) | React bindings (`useCart`, `useStore`, `useVariantSelection`, `usePredictiveSearch`, `useLocale`, `<Money/>`, `<Image/>`, `<ShopPayButton/>`, `<NonceProvider/>`). |
-| [`@openshop/vue`](./packages/vue) | Vue 3 composables over the same core (`useCart`, `useStore`, `useVariantSelection`, `usePredictiveSearch`, `useLocale`, `useMoney`). |
-| [`@openshop/svelte`](./packages/svelte) | Svelte stores over the same core (`createCartStores`, `selectStore`, `createVariantSelection`, `createPredictiveSearch`). |
-| [`examples/node-storefront`](./examples/node-storefront) | A zero-config example storefront (Node http) assembling every module — doubles as a living integration test. |
+| Package                                                  | Description                                                                                                                                                        |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`@openshop/core`](./packages/core)                      | Framework-agnostic commerce primitives: reactive store, Storefront client, cart, catalog, customer accounts, search, i18n, server handlers, money, analytics.      |
+| [`@openshop/react`](./packages/react)                    | React bindings (`useCart`, `useStore`, `useVariantSelection`, `usePredictiveSearch`, `useLocale`, `<Money/>`, `<Image/>`, `<ShopPayButton/>`, `<NonceProvider/>`). |
+| [`@openshop/vue`](./packages/vue)                        | Vue 3 composables over the same core (`useCart`, `useStore`, `useVariantSelection`, `usePredictiveSearch`, `useLocale`, `useMoney`).                               |
+| [`@openshop/svelte`](./packages/svelte)                  | Svelte stores over the same core (`createCartStores`, `selectStore`, `createVariantSelection`, `createPredictiveSearch`).                                          |
+| [`examples/node-storefront`](./examples/node-storefront) | A zero-config example storefront (Node http) assembling every module — doubles as a living integration test.                                                       |
 
 ## Quick start
 
@@ -47,7 +47,12 @@ pnpm test
 ### Query the Storefront API (typed, no codegen)
 
 ```ts
-import { createStorefrontClient, gql, MemoryCacheAdapter, CacheLong } from "@openshop/core";
+import {
+  createStorefrontClient,
+  gql,
+  MemoryCacheAdapter,
+  CacheLong,
+} from "@openshop/core";
 
 const storefront = createStorefrontClient({
   storeDomain: "your-shop.myshopify.com",
@@ -56,12 +61,11 @@ const storefront = createStorefrontClient({
   cache: new MemoryCacheAdapter(),
 });
 
-const ProductQuery = gql<
-  { product: { title: string } },
-  { handle: string }
->`
+const ProductQuery = gql<{ product: { title: string } }, { handle: string }>`
   query Product($handle: String!) {
-    product(handle: $handle) { title }
+    product(handle: $handle) {
+      title
+    }
   }
 `;
 
@@ -80,17 +84,27 @@ import { createCartStore } from "@openshop/core";
 const cart = createCartStore({ client: myCartClient });
 
 // React only when the count changes:
-cart.subscribe((s) => s.cart?.totalQuantity ?? 0, (count) => {
-  document.querySelector("#cart-count")!.textContent = String(count);
-});
+cart.subscribe(
+  (s) => s.cart?.totalQuantity ?? 0,
+  (count) => {
+    document.querySelector("#cart-count")!.textContent = String(count);
+  },
+);
 
-await cart.addLine({ merchandiseId: "gid://shopify/ProductVariant/123", quantity: 2 });
+await cart.addLine({
+  merchandiseId: "gid://shopify/ProductVariant/123",
+  quantity: 2,
+});
 ```
 
 ### Wire the cart to a real shop
 
 ```ts
-import { createStorefrontClient, StorefrontCartClient, createCartStore } from "@openshop/core";
+import {
+  createStorefrontClient,
+  StorefrontCartClient,
+  createCartStore,
+} from "@openshop/core";
 
 const storefront = createStorefrontClient({
   storeDomain: "your-shop.myshopify.com",
@@ -107,20 +121,29 @@ const cart = createCartStore({
   },
 });
 
-await cart.hydrate();                                  // restore an existing cart
-await cart.addLine({ merchandiseId: "gid://…/123" });  // optimistic + server-synced
+await cart.hydrate(); // restore an existing cart
+await cart.addLine({ merchandiseId: "gid://…/123" }); // optimistic + server-synced
 ```
 
 ### Fetch a product and drive variant selection
 
 ```ts
-import { CatalogClient, getInitialSelection, selectOption } from "@openshop/core";
+import {
+  CatalogClient,
+  getInitialSelection,
+  selectOption,
+} from "@openshop/core";
 
 const catalog = new CatalogClient({ storefront });
 const product = await catalog.getProduct("classic-tee");
 
-let selection = getInitialSelection(product!);            // default available variant
-const { selection: next, variant } = selectOption(product!, selection, "Size", "M");
+let selection = getInitialSelection(product!); // default available variant
+const { selection: next, variant } = selectOption(
+  product!,
+  selection,
+  "Size",
+  "M",
+);
 // `variant` is the resolved ProductVariant for { ...selection, Size: "M" } or undefined
 ```
 
@@ -142,7 +165,8 @@ function ProductForm({ product }) {
               aria-pressed={v.selected}
               onClick={() => setOption(opt.name, v.value)}
             >
-              {v.value}{!v.inStock && " (sold out)"}
+              {v.value}
+              {!v.inStock && " (sold out)"}
             </button>
           ))}
         </fieldset>
@@ -156,12 +180,21 @@ function ProductForm({ product }) {
 ### In React
 
 ```tsx
-import { CartProvider, useCartCount, useCartActions, Money } from "@openshop/react";
+import {
+  CartProvider,
+  useCartCount,
+  useCartActions,
+  Money,
+} from "@openshop/react";
 
 function CartButton() {
-  const count = useCartCount();           // re-renders only on count change
+  const count = useCartCount(); // re-renders only on count change
   const { addLine } = useCartActions();
-  return <button onClick={() => addLine({ merchandiseId: "..." })}>Cart ({count})</button>;
+  return (
+    <button onClick={() => addLine({ merchandiseId: "..." })}>
+      Cart ({count})
+    </button>
+  );
 }
 ```
 
@@ -178,12 +211,14 @@ const { handleShopifyRoutes, handleShopifyRedirects } = createServerHandlers({
   cart: { client: new StorefrontCartClient({ storefront }) },
 });
 
-export default async function fetchHandler(request: Request): Promise<Response> {
+export default async function fetchHandler(
+  request: Request,
+): Promise<Response> {
   // Owned routes (Storefront proxy at /api/storefront, cart endpoints at /cart):
   const owned = await handleShopifyRoutes(request);
   if (owned) return owned;
 
-  const response = await runFrameworkRouter(request);  // your framework
+  const response = await runFrameworkRouter(request); // your framework
 
   if (response.status === 404) {
     const redirect = await handleShopifyRedirects(request); // /admin + URL redirects
@@ -199,7 +234,11 @@ A plain HTML form posts to `/cart` and works with JS disabled; with JS it sends
 ```html
 <form method="post" action="/cart">
   <input type="hidden" name="action" value="add" />
-  <input type="hidden" name="merchandiseId" value="gid://shopify/ProductVariant/123" />
+  <input
+    type="hidden"
+    name="merchandiseId"
+    value="gid://shopify/ProductVariant/123"
+  />
   <button>Add to cart</button>
 </form>
 ```
@@ -232,7 +271,12 @@ const profile = await customer.getCustomer(); // profile, orders, addresses
 ### Search & faceted filtering
 
 ```ts
-import { SearchClient, buildProductFilters, facetInputs, mergeFilters } from "@openshop/core";
+import {
+  SearchClient,
+  buildProductFilters,
+  facetInputs,
+  mergeFilters,
+} from "@openshop/core";
 
 const search = new SearchClient({ storefront });
 
@@ -241,10 +285,14 @@ const suggestions = await search.predictive("sho", { limit: 5 });
 
 // Full search with friendly filters:
 const page = await search.products("shoes", {
-  filters: buildProductFilters({ available: true, minPrice: 20, maxPrice: 100 }),
+  filters: buildProductFilters({
+    available: true,
+    minPrice: 20,
+    maxPrice: 100,
+  }),
   sortKey: "PRICE",
 });
-page.facets;     // available facets with counts to render filter UI
+page.facets; // available facets with counts to render filter UI
 page.nextCursor; // pass back as `after` for the next page
 
 // Facet-driven: take the inputs of the values a buyer toggled and send them back:
@@ -259,13 +307,21 @@ In React (debounced, race-safe):
 import { usePredictiveSearch } from "@openshop/react";
 
 function SearchBox({ searchClient }) {
-  const { term, setTerm, results, loading } = usePredictiveSearch(
-    (q) => searchClient.predictive(q, { limit: 6 }),
+  const { term, setTerm, results, loading } = usePredictiveSearch((q) =>
+    searchClient.predictive(q, { limit: 6 }),
   );
   return (
     <>
       <input value={term} onChange={(e) => setTerm(e.target.value)} />
-      {loading ? <Spinner /> : results.products.map((p) => <a key={p.id} href={`/products/${p.handle}`}>{p.title}</a>)}
+      {loading ? (
+        <Spinner />
+      ) : (
+        results.products.map((p) => (
+          <a key={p.id} href={`/products/${p.handle}`}>
+            {p.title}
+          </a>
+        ))
+      )}
     </>
   );
 }
@@ -286,14 +342,15 @@ const i18n = createI18n({
 });
 
 // On each request: detect locale, strip the prefix, feed the Storefront client.
-const { locale, basename } = i18n.match(request);          // /fr-ca/... -> fr-CA
+const { locale, basename } = i18n.match(request); // /fr-ca/... -> fr-CA
 const storefront = createStorefrontClient({
-  storeDomain, publicAccessToken,
-  i18n: i18n.toStorefrontContext(locale),                  // { language, country }
+  storeDomain,
+  publicAccessToken,
+  i18n: i18n.toStorefrontContext(locale), // { language, country }
 });
 
-i18n.localizePath("/products/tee", i18n.byId("fr-CA")!);   // "/fr-ca/products/tee"
-i18n.alternates("/products/tee");                          // hreflang links for SEO
+i18n.localizePath("/products/tee", i18n.byId("fr-CA")!); // "/fr-ca/products/tee"
+i18n.alternates("/products/tee"); // hreflang links for SEO
 ```
 
 ### Cache at the edge
@@ -307,7 +364,8 @@ import { KvCacheAdapter, WebCacheAdapter } from "@openshop/core/cache-adapters";
 
 // Cloudflare Workers — KV:
 const storefront = createStorefrontClient({
-  storeDomain, publicAccessToken,
+  storeDomain,
+  publicAccessToken,
   cache: new KvCacheAdapter(env.PRODUCTS_KV, { ttlSeconds: 3600 }),
 });
 
@@ -319,10 +377,19 @@ const cached = new WebCacheAdapter(caches.default);
 
 ```tsx
 import { Image, NonceProvider } from "@openshop/react";
-import { getSeoTags, productJsonLd, createContentSecurityPolicy } from "@openshop/core";
+import {
+  getSeoTags,
+  productJsonLd,
+  createContentSecurityPolicy,
+} from "@openshop/core";
 
 // Responsive Shopify-CDN image with an automatic srcset:
-<Image src={product.featuredImage.url} width={800} sizes="(min-width: 768px) 50vw, 100vw" alt={product.title} />;
+<Image
+  src={product.featuredImage.url}
+  width={800}
+  sizes="(min-width: 768px) 50vw, 100vw"
+  alt={product.title}
+/>;
 
 // SEO meta + Product JSON-LD for a product page:
 const seo = getSeoTags({
@@ -330,7 +397,12 @@ const seo = getSeoTags({
   titleTemplate: "%s | My Shop",
   description: product.description,
   url: `https://shop.com/products/${product.handle}`,
-  jsonLd: productJsonLd({ name: product.title, price: variant.price, url, availableForSale: variant.availableForSale }),
+  jsonLd: productJsonLd({
+    name: product.title,
+    price: variant.price,
+    url,
+    availableForSale: variant.availableForSale,
+  }),
 });
 
 // Per-request CSP nonce (set the header on your document response):
@@ -343,7 +415,10 @@ response.headers.set("Content-Security-Policy", csp.header);
 
 ```ts
 import { parseMetafield } from "@openshop/core/metafields";
-import { getProductOptions, decodeEncodedVariant } from "@openshop/core/catalog";
+import {
+  getProductOptions,
+  decodeEncodedVariant,
+} from "@openshop/core/catalog";
 import { connectShopifyAnalytics } from "@openshop/core/analytics-shopify";
 
 // Typed metafields (dimensions, ratings, references, lists, money, dates…):
@@ -356,8 +431,14 @@ const options = getProductOptions(product, { Color: "Red" });
 
 // Send standard events to Shopify (Admin analytics) — consent-gated, best-effort:
 connectShopifyAnalytics({
-  analytics,                                  // the consent-aware Analytics instance
-  context: () => ({ shopId, currency: "USD", hasUserConsent, uniqueToken, visitToken }),
+  analytics, // the consent-aware Analytics instance
+  context: () => ({
+    shopId,
+    currency: "USD",
+    hasUserConsent,
+    uniqueToken,
+    visitToken,
+  }),
 });
 ```
 
@@ -365,7 +446,9 @@ Product media (image, video, external video, 3D) in React:
 
 ```tsx
 import { MediaFile } from "@openshop/react";
-{product.media.nodes.map((m) => <MediaFile key={m.id} media={m} />)}
+{
+  product.media.nodes.map((m) => <MediaFile key={m.id} media={m} />);
+}
 ```
 
 Cart building blocks in React:
@@ -407,6 +490,8 @@ This is an early foundation. Implemented and tested today:
 - [x] Exact money arithmetic & `Intl` formatting
 - [x] Optimistic, serialized cart store
 - [x] **Real `StorefrontCartClient`** (Cart API mutations + userError handling)
+- [x] **Full cart surface** (buyer identity, gift cards, attributes, note — market pricing / B2B foundation)
+- [x] **Storefront utilities** (`parseGid`, `composeGid`, `flattenConnection`)
 - [x] **Catalog client** (products, collections with pagination, recommendations)
 - [x] **Variant selection logic** (option availability, in-stock states, URL round-trip)
 - [x] **Responsive images** (Shopify CDN transforms + `srcset`, `<Image>`)

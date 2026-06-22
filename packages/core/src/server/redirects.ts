@@ -20,7 +20,10 @@ interface UrlRedirectsResult {
 const UrlRedirectsQuery = gql<UrlRedirectsResult, { query: string }>`
   query UrlRedirects($query: String!) {
     urlRedirects(first: 1, query: $query) {
-      nodes { path target }
+      nodes {
+        path
+        target
+      }
     }
   }
 `;

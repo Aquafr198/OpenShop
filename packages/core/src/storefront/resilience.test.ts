@@ -88,7 +88,9 @@ describe("CircuitBreaker", () => {
     await expect(breaker.execute(boom)).rejects.toThrow("boom");
     await expect(breaker.execute(boom)).rejects.toThrow("boom");
     expect(breaker.currentState).toBe("open");
-    await expect(breaker.execute(boom)).rejects.toBeInstanceOf(CircuitOpenError);
+    await expect(breaker.execute(boom)).rejects.toBeInstanceOf(
+      CircuitOpenError,
+    );
   });
 
   it("closes again after a successful trial request", async () => {
@@ -96,10 +98,14 @@ describe("CircuitBreaker", () => {
       failureThreshold: 1,
       resetTimeoutMs: 0,
     });
-    await expect(breaker.execute(() => Promise.reject(new Error("x")))).rejects.toThrow();
+    await expect(
+      breaker.execute(() => Promise.reject(new Error("x"))),
+    ).rejects.toThrow();
     expect(breaker.currentState).toBe("open");
     // resetTimeoutMs 0 -> immediately half-open on next call.
-    await expect(breaker.execute(() => Promise.resolve("ok"))).resolves.toBe("ok");
+    await expect(breaker.execute(() => Promise.resolve("ok"))).resolves.toBe(
+      "ok",
+    );
     expect(breaker.currentState).toBe("closed");
   });
 });

@@ -18,9 +18,7 @@ describe("SwrCache", () => {
   it("dedupes concurrent misses into a single refresh", async () => {
     const cache = new SwrCache(new MemoryCacheAdapter());
     let resolveFn!: (v: string) => void;
-    const refresh = vi.fn(
-      () => new Promise<string>((r) => (resolveFn = r)),
-    );
+    const refresh = vi.fn(() => new Promise<string>((r) => (resolveFn = r)));
     const policy = { maxAge: 60 };
 
     const p1 = cache.resolve("k", policy, refresh);

@@ -66,7 +66,13 @@ export class SearchClient {
     options: { limit?: number; cache?: CachePolicy } = {},
   ): Promise<PredictiveSearchResult> {
     if (query.trim().length === 0) {
-      return { products: [], collections: [], pages: [], articles: [], queries: [] };
+      return {
+        products: [],
+        collections: [],
+        pages: [],
+        articles: [],
+        queries: [],
+      };
     }
     const data = await this.storefront.query(this.docs.predictiveSearch, {
       variables: { query, ...(options.limit ? { limit: options.limit } : {}) },

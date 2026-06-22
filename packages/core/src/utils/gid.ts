@@ -78,9 +78,6 @@ export function parseGid(gid: string | undefined | null): ShopifyGid {
  * composeGid("Product", 123); // "gid://shopify/Product/123"
  * ```
  */
-export function composeGid(
-  resource: string,
-  id: string | number,
-): string {
+export function composeGid(resource: string, id: string | number): string {
   return `gid://shopify/${resource}/${id}`;
 }

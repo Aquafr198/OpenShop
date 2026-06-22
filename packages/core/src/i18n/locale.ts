@@ -71,7 +71,7 @@ export function createI18n(config: I18nConfig): I18n {
   const locales = config.locales;
   const defaultLocale =
     typeof config.defaultLocale === "string"
-      ? locales.find((l) => l.id === config.defaultLocale) ?? locales[0]
+      ? (locales.find((l) => l.id === config.defaultLocale) ?? locales[0])
       : config.defaultLocale;
 
   if (!defaultLocale) {

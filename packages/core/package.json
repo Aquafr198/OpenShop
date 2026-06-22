@@ -3,10 +3,32 @@
   "version": "0.5.0",
   "description": "Framework-agnostic headless commerce core for OpenShop.",
   "license": "MIT",
+  "author": "Aquafr198",
+  "homepage": "https://github.com/Aquafr198/OpenShop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aquafr198/OpenShop.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Aquafr198/OpenShop/issues"
+  },
+  "keywords": [
+    "shopify",
+    "headless",
+    "commerce",
+    "storefront",
+    "storefront-api",
+    "ecommerce",
+    "hydrogen",
+    "cart",
+    "graphql"
+  ],
   "type": "module",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "exports": {
     ".": {
@@ -107,6 +129,7 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },

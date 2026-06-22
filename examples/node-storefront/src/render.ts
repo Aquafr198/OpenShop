@@ -110,7 +110,9 @@ export function renderCart(opts: {
         </tr>`;
       })
       .join("\n");
-    const total = formatMoney(cart.cost.totalAmount, { locale: opts.locale.id });
+    const total = formatMoney(cart.cost.totalAmount, {
+      locale: opts.locale.id,
+    });
     body = `<h1>Your cart</h1>
       <table>
         <thead><tr><th>Item</th><th>Qty</th><th>Total</th><th></th></tr></thead>

@@ -22,7 +22,12 @@ export class EncodedVariantError extends Error {
 }
 
 const SEPARATOR = ",";
-const CONTROL = { OPTION: ":", END_OF_PREFIX: ",", GAP: " ", RANGE: "-" } as const;
+const CONTROL = {
+  OPTION: ":",
+  END_OF_PREFIX: ",",
+  GAP: " ",
+  RANGE: "-",
+} as const;
 
 /**
  * Decode an encoded option-value string into the list of valid option-value
@@ -31,7 +36,9 @@ const CONTROL = { OPTION: ":", END_OF_PREFIX: ",", GAP: " ", RANGE: "-" } as con
 export function decodeEncodedVariant(encoded: string): number[][] {
   if (!encoded) return [];
   if (!encoded.startsWith("v1_")) {
-    throw new EncodedVariantError(`Unsupported option value encoding: ${encoded}`);
+    throw new EncodedVariantError(
+      `Unsupported option value encoding: ${encoded}`,
+    );
   }
   return decodeV1(encoded.replace(/^v1_/, ""));
 }
@@ -47,7 +54,8 @@ function decodeV1(field: string): number[][] {
 
   while ((token = tokenizer.exec(field))) {
     const operation = token[0];
-    const valueIndex = Number.parseInt(field.slice(index, token.index), 10) || 0;
+    const valueIndex =
+      Number.parseInt(field.slice(index, token.index), 10) || 0;
 
     if (rangeStart !== null) {
       // Expand a continuous range started by a preceding `-`.
@@ -65,8 +73,7 @@ function decodeV1(field: string): number[][] {
     } else if (operation === CONTROL.OPTION) {
       depth++;
     } else {
-      const prevCharWasComma =
-        field[token.index - 1] === CONTROL.END_OF_PREFIX;
+      const prevCharWasComma = field[token.index - 1] === CONTROL.END_OF_PREFIX;
       if (
         operation === CONTROL.GAP ||
         (operation === CONTROL.END_OF_PREFIX && !prevCharWasComma)

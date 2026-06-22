@@ -2,12 +2,7 @@
 
 import { gql } from "../storefront/gql.js";
 import type { MoneyV2 } from "../money/money.js";
-import type {
-  Collection,
-  Image,
-  Product,
-  ProductVariant,
-} from "./types.js";
+import type { Collection, Image, Product, ProductVariant } from "./types.js";
 
 interface RawVariant {
   id: string;
@@ -97,7 +92,10 @@ export function mapCollection(raw: RawCollection): Collection {
   };
 }
 
-export function productFragment(variantsFirst: number, imagesFirst: number): string {
+export function productFragment(
+  variantsFirst: number,
+  imagesFirst: number,
+): string {
   return /* GraphQL */ `
     fragment ProductFields on Product {
       id
@@ -150,7 +148,9 @@ export function buildCatalogDocuments(options: CatalogDocumentOptions = {}) {
   >`
     ${fragment}
     query ProductByHandle($handle: String!) {
-      product(handle: $handle) { ...ProductFields }
+      product(handle: $handle) {
+        ...ProductFields
+      }
     }
   `;
 
@@ -160,7 +160,9 @@ export function buildCatalogDocuments(options: CatalogDocumentOptions = {}) {
   >`
     ${fragment}
     query ProductRecommendations($productId: ID!) {
-      productRecommendations(productId: $productId) { ...ProductFields }
+      productRecommendations(productId: $productId) {
+        ...ProductFields
+      }
     }
   `;
 
@@ -175,10 +177,20 @@ export function buildCatalogDocuments(options: CatalogDocumentOptions = {}) {
         handle
         title
         description
-        image { url altText width height }
+        image {
+          url
+          altText
+          width
+          height
+        }
         products(first: $first, after: $after) {
-          nodes { ...ProductFields }
-          pageInfo { hasNextPage endCursor }
+          nodes {
+            ...ProductFields
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }

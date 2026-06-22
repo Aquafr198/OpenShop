@@ -59,18 +59,19 @@ describe("CustomerAccountAuth", () => {
   });
 
   it("exchanges a code for tokens", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          access_token: "at",
-          refresh_token: "rt",
-          id_token: "it",
-          expires_in: 3600,
-          token_type: "Bearer",
-          scope: "openid",
-        }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      ),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            access_token: "at",
+            refresh_token: "rt",
+            id_token: "it",
+            expires_in: 3600,
+            token_type: "Bearer",
+            scope: "openid",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
     );
     const auth = new CustomerAccountAuth({
       storeDomain: "my-shop.myshopify.com",
@@ -86,7 +87,7 @@ describe("CustomerAccountAuth", () => {
     expect(tokens.refreshToken).toBe("rt");
     expect(tokens.expiresAt).toBeGreaterThan(Date.now());
 
-    const body = (fetchMock.mock.calls[0]![1]!.body as string);
+    const body = fetchMock.mock.calls[0]![1]!.body as string;
     expect(body).toContain("grant_type=authorization_code");
     expect(body).toContain("code_verifier=v");
   });
@@ -99,7 +100,9 @@ describe("CustomerAccountAuth", () => {
       clientId: "c",
       redirectUri: "https://app.test/callback",
     });
-    const url = new URL(await auth.buildLogoutUrl("id-token", "https://app.test"));
+    const url = new URL(
+      await auth.buildLogoutUrl("id-token", "https://app.test"),
+    );
     expect(url.searchParams.get("id_token_hint")).toBe("id-token");
     expect(url.searchParams.get("post_logout_redirect_uri")).toBe(
       "https://app.test",
@@ -119,7 +122,12 @@ describe("CustomerAccountAuth", () => {
         );
       }
       return new Response(
-        JSON.stringify({ access_token: "at", refresh_token: "rt", expires_in: 3600, token_type: "Bearer" }),
+        JSON.stringify({
+          access_token: "at",
+          refresh_token: "rt",
+          expires_in: 3600,
+          token_type: "Bearer",
+        }),
         { status: 200 },
       );
     });
@@ -136,11 +144,12 @@ describe("CustomerAccountAuth", () => {
 
 describe("CustomerAccountClient", () => {
   function client(response: unknown, status = 200) {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify(response), {
-        status,
-        headers: { "content-type": "application/json" },
-      }),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(response), {
+          status,
+          headers: { "content-type": "application/json" },
+        }),
     );
     const c = new CustomerAccountClient({
       shopId: "123",
@@ -184,7 +193,10 @@ describe("CustomerAccountClient", () => {
     expect(customer.orders[0]!.lineItems[0]!.title).toBe("Tee");
 
     // Access token is sent in the Authorization header.
-    const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
+    const headers = fetchMock.mock.calls[0]![1]!.headers as Record<
+      string,
+      string
+    >;
     expect(headers.Authorization).toBe("access-token");
   });
 
@@ -193,7 +205,9 @@ describe("CustomerAccountClient", () => {
       data: {
         customerAddressCreate: {
           customerAddress: null,
-          userErrors: [{ field: ["zip"], message: "Invalid ZIP", code: "INVALID" }],
+          userErrors: [
+            { field: ["zip"], message: "Invalid ZIP", code: "INVALID" },
+          ],
         },
       },
     });
@@ -206,7 +220,10 @@ describe("CustomerAccountClient", () => {
     const { c } = client({
       data: {
         customerAddressCreate: {
-          customerAddress: { id: "gid://shopify/CustomerAddress/1", city: "Paris" },
+          customerAddress: {
+            id: "gid://shopify/CustomerAddress/1",
+            city: "Paris",
+          },
           userErrors: [],
         },
       },

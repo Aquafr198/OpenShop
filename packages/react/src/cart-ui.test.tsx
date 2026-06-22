@@ -5,7 +5,10 @@ import { createCartStore, type Cart, type CartClient } from "@openshop/core";
 import { CartProvider, useCartActions } from "./cart.js";
 import { AddToCartButton, CheckoutButton, CartTotal } from "./cart-ui.js";
 
-function makeCart(totalQuantity: number, checkoutUrl = "https://demo.myshopify.com/cart/c/1"): Cart {
+function makeCart(
+  totalQuantity: number,
+  checkoutUrl = "https://demo.myshopify.com/cart/c/1",
+): Cart {
   return {
     id: "gid://shopify/Cart/1",
     checkoutUrl,
@@ -47,7 +50,9 @@ describe("<AddToCartButton>", () => {
     await act(async () => {
       getByRole("button").click();
     });
-    expect(client.create).toHaveBeenCalledWith([{ merchandiseId: "v1", quantity: 2 }]);
+    expect(client.create).toHaveBeenCalledWith([
+      { merchandiseId: "v1", quantity: 2 },
+    ]);
   });
 });
 
@@ -63,7 +68,10 @@ describe("<CheckoutButton>", () => {
   });
 
   it("renders a link when the cart has items", async () => {
-    const store = createCartStore({ client: mockClient(), initialCart: makeCart(2) });
+    const store = createCartStore({
+      client: mockClient(),
+      initialCart: makeCart(2),
+    });
     const { container } = render(createElement(CheckoutButton, {}), {
       wrapper: wrapper(store),
     });
@@ -74,7 +82,10 @@ describe("<CheckoutButton>", () => {
 
 describe("<CartTotal>", () => {
   it("formats the cart total", () => {
-    const store = createCartStore({ client: mockClient(), initialCart: makeCart(1) });
+    const store = createCartStore({
+      client: mockClient(),
+      initialCart: makeCart(1),
+    });
     const { container } = render(createElement(CartTotal, {}), {
       wrapper: wrapper(store),
     });
@@ -86,7 +97,9 @@ describe("useCartActions integration", () => {
   it("reflects updating state after an action", async () => {
     const client = mockClient();
     const store = createCartStore({ client });
-    const { result } = renderHook(() => useCartActions(), { wrapper: wrapper(store) });
+    const { result } = renderHook(() => useCartActions(), {
+      wrapper: wrapper(store),
+    });
     await act(async () => {
       await result.current.addLine({ merchandiseId: "v1" });
     });

@@ -3,13 +3,24 @@
   "version": "0.2.0",
   "description": "Scaffold an OpenShop headless storefront in seconds.",
   "license": "MIT",
+  "author": "Aquafr198",
+  "homepage": "https://github.com/Aquafr198/OpenShop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aquafr198/OpenShop.git",
+    "directory": "packages/create-openshop"
+  },
+  "bugs": {
+    "url": "https://github.com/Aquafr198/OpenShop/issues"
+  },
   "type": "module",
   "bin": {
     "create-openshop": "./bin/create-openshop.mjs"
   },
   "files": [
     "bin",
-    "templates"
+    "templates",
+    "README.md"
   ],
   "keywords": [
     "shopify",

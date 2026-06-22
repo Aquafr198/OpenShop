@@ -59,7 +59,8 @@ export class KvCacheAdapter implements CacheAdapter {
   }
 
   async set<T>(key: string, entry: CacheEntry<T>): Promise<void> {
-    const options = this.ttl !== undefined ? { expirationTtl: this.ttl } : undefined;
+    const options =
+      this.ttl !== undefined ? { expirationTtl: this.ttl } : undefined;
     await this.kv.put(this.k(key), JSON.stringify(entry), options);
   }
 

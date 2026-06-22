@@ -90,7 +90,11 @@ describe("getOptionValueStates", () => {
 
     expect(s).toMatchObject({ available: true, inStock: true, selected: true });
     // M/Black exists but is out of stock.
-    expect(m).toMatchObject({ available: true, inStock: false, selected: false });
+    expect(m).toMatchObject({
+      available: true,
+      inStock: false,
+      selected: false,
+    });
   });
 
   it("marks unreachable combinations as unavailable", () => {

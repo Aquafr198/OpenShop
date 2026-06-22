@@ -126,13 +126,36 @@ export function buildSearchDocuments(options: SearchDocumentOptions = {}) {
           id
           title
           handle
-          featuredImage { url altText }
-          priceRange { minVariantPrice { amount currencyCode } }
+          featuredImage {
+            url
+            altText
+          }
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
         }
-        collections { id title handle }
-        pages { id title handle }
-        articles { id title handle }
-        queries { text styledText }
+        collections {
+          id
+          title
+          handle
+        }
+        pages {
+          id
+          title
+          handle
+        }
+        articles {
+          id
+          title
+          handle
+        }
+        queries {
+          text
+          styledText
+        }
       }
     }
   `;
@@ -173,10 +196,27 @@ export function buildSearchDocuments(options: SearchDocumentOptions = {}) {
         reverse: $reverse
         productFilters: $productFilters
       ) {
-        nodes { ... on Product { ...ProductFields } }
+        nodes {
+          ... on Product {
+            ...ProductFields
+          }
+        }
         totalCount
-        productFilters { id label type values { id label count input } }
-        pageInfo { hasNextPage endCursor }
+        productFilters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
       }
     }
   `;
@@ -223,9 +263,24 @@ export function buildSearchDocuments(options: SearchDocumentOptions = {}) {
           sortKey: $sortKey
           reverse: $reverse
         ) {
-          nodes { ...ProductFields }
-          filters { id label type values { id label count input } }
-          pageInfo { hasNextPage endCursor }
+          nodes {
+            ...ProductFields
+          }
+          filters {
+            id
+            label
+            type
+            values {
+              id
+              label
+              count
+              input
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }

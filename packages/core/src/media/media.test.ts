@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { mediaKind, externalVideoEmbedUrl, type ExternalVideoNode } from "./media.js";
+import {
+  mediaKind,
+  externalVideoEmbedUrl,
+  type ExternalVideoNode,
+} from "./media.js";
 
 describe("mediaKind", () => {
   it("discriminates known media types", () => {
@@ -23,7 +27,9 @@ describe("externalVideoEmbedUrl", () => {
       host: "YOUTUBE",
       embedUrl: "https://www.youtube.com/embed/abc12345678",
     };
-    expect(externalVideoEmbedUrl(node)).toBe("https://www.youtube.com/embed/abc12345678");
+    expect(externalVideoEmbedUrl(node)).toBe(
+      "https://www.youtube.com/embed/abc12345678",
+    );
   });
 
   it("derives a YouTube embed from a watch URL", () => {
@@ -32,7 +38,9 @@ describe("externalVideoEmbedUrl", () => {
       host: "YOUTUBE",
       originUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     };
-    expect(externalVideoEmbedUrl(node)).toBe("https://www.youtube.com/embed/dQw4w9WgXcQ");
+    expect(externalVideoEmbedUrl(node)).toBe(
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    );
   });
 
   it("derives a YouTube embed from a youtu.be URL", () => {
@@ -41,7 +49,9 @@ describe("externalVideoEmbedUrl", () => {
       host: "YOUTUBE",
       originUrl: "https://youtu.be/dQw4w9WgXcQ",
     };
-    expect(externalVideoEmbedUrl(node)).toBe("https://www.youtube.com/embed/dQw4w9WgXcQ");
+    expect(externalVideoEmbedUrl(node)).toBe(
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    );
   });
 
   it("derives a Vimeo embed", () => {
@@ -50,7 +60,9 @@ describe("externalVideoEmbedUrl", () => {
       host: "VIMEO",
       originUrl: "https://vimeo.com/123456789",
     };
-    expect(externalVideoEmbedUrl(node)).toBe("https://player.vimeo.com/video/123456789");
+    expect(externalVideoEmbedUrl(node)).toBe(
+      "https://player.vimeo.com/video/123456789",
+    );
   });
 
   it("returns null when no usable URL is available", () => {
@@ -58,7 +70,11 @@ describe("externalVideoEmbedUrl", () => {
       externalVideoEmbedUrl({ __typename: "ExternalVideo", host: "YOUTUBE" }),
     ).toBeNull();
     expect(
-      externalVideoEmbedUrl({ __typename: "ExternalVideo", host: "YOUTUBE", originUrl: "https://x.com/foo" }),
+      externalVideoEmbedUrl({
+        __typename: "ExternalVideo",
+        host: "YOUTUBE",
+        originUrl: "https://x.com/foo",
+      }),
     ).toBeNull();
   });
 

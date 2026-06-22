@@ -41,10 +41,11 @@ function parseCookieString(source: string): Record<string, string> {
  * browser: defaults to `document.cookie`). Prefers modern token cookies, falls
  * back to the legacy `_shopify_y`/`_shopify_s` when present.
  */
-export function readTrackingValues(cookieSource?: string | null): TrackingValues {
+export function readTrackingValues(
+  cookieSource?: string | null,
+): TrackingValues {
   const source =
-    cookieSource ??
-    (typeof document !== "undefined" ? document.cookie : "");
+    cookieSource ?? (typeof document !== "undefined" ? document.cookie : "");
   const cookies = parseCookieString(source ?? "");
   return {
     uniqueToken: cookies[MODERN_UNIQUE] ?? cookies[LEGACY_UNIQUE] ?? null,

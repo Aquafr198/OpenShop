@@ -73,7 +73,11 @@ describe("example storefront — integration", () => {
           "content-type": "application/json",
           accept: "application/json",
         },
-        body: JSON.stringify({ action: "add", merchandiseId: "variant-hoodie-l", quantity: 2 }),
+        body: JSON.stringify({
+          action: "add",
+          merchandiseId: "variant-hoodie-l",
+          quantity: 2,
+        }),
       }),
     );
     expect(res.status).toBe(200);

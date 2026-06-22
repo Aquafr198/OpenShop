@@ -50,13 +50,21 @@ describe("isOptionValueCombinationInEncodedVariant", () => {
   const encoded = "v1_0:0-2,1:2,";
 
   it("matches full combinations", () => {
-    expect(isOptionValueCombinationInEncodedVariant([0, 0], encoded)).toBe(true);
-    expect(isOptionValueCombinationInEncodedVariant([1, 2], encoded)).toBe(true);
+    expect(isOptionValueCombinationInEncodedVariant([0, 0], encoded)).toBe(
+      true,
+    );
+    expect(isOptionValueCombinationInEncodedVariant([1, 2], encoded)).toBe(
+      true,
+    );
   });
 
   it("rejects non-existent combinations", () => {
-    expect(isOptionValueCombinationInEncodedVariant([1, 0], encoded)).toBe(false);
-    expect(isOptionValueCombinationInEncodedVariant([2, 0], encoded)).toBe(false);
+    expect(isOptionValueCombinationInEncodedVariant([1, 0], encoded)).toBe(
+      false,
+    );
+    expect(isOptionValueCombinationInEncodedVariant([2, 0], encoded)).toBe(
+      false,
+    );
   });
 
   it("supports partial-prefix lookups", () => {
@@ -72,21 +80,27 @@ describe("isOptionValueCombinationInEncodedVariant", () => {
   it("is consistent with decodeEncodedVariant (Property 5)", () => {
     const combos = decodeEncodedVariant(encoded);
     for (const combo of combos) {
-      expect(isOptionValueCombinationInEncodedVariant(combo, encoded)).toBe(true);
+      expect(isOptionValueCombinationInEncodedVariant(combo, encoded)).toBe(
+        true,
+      );
     }
     // A combination not in the decoded set must not be a member.
-    expect(isOptionValueCombinationInEncodedVariant([1, 0], encoded)).toBe(false);
+    expect(isOptionValueCombinationInEncodedVariant([1, 0], encoded)).toBe(
+      false,
+    );
   });
 
   it("handles a 2000-variant product efficiently", () => {
     // 20 colors x 100 sizes, all existing: v1_0:0-99,1:0-99,...,19:0-99,
     const encodedBig =
-      "v1_" +
-      Array.from({ length: 20 }, (_, i) => `${i}:0-99`).join(",") +
-      ",";
+      "v1_" + Array.from({ length: 20 }, (_, i) => `${i}:0-99`).join(",") + ",";
     const start = Date.now();
-    expect(isOptionValueCombinationInEncodedVariant([19, 99], encodedBig)).toBe(true);
-    expect(isOptionValueCombinationInEncodedVariant([20, 0], encodedBig)).toBe(false);
+    expect(isOptionValueCombinationInEncodedVariant([19, 99], encodedBig)).toBe(
+      true,
+    );
+    expect(isOptionValueCombinationInEncodedVariant([20, 0], encodedBig)).toBe(
+      false,
+    );
     expect(Date.now() - start).toBeLessThan(200);
   });
 });
@@ -98,7 +112,10 @@ describe("getProductOptions", () => {
     encodedVariantAvailability: "v1_0:0-1,1:2,",
     options: [
       { name: "Color", optionValues: [{ name: "Red" }, { name: "Blue" }] },
-      { name: "Size", optionValues: [{ name: "S" }, { name: "M" }, { name: "L" }] },
+      {
+        name: "Size",
+        optionValues: [{ name: "S" }, { name: "M" }, { name: "L" }],
+      },
     ],
   };
 
@@ -106,7 +123,9 @@ describe("getProductOptions", () => {
     const opts = getProductOptions(product, { Color: "Red" });
     const size = opts.find((o) => o.name === "Size")!;
     // Red exists with S,M,L; available only S,M.
-    expect(size.optionValues.map((v) => [v.name, v.exists, v.available])).toEqual([
+    expect(
+      size.optionValues.map((v) => [v.name, v.exists, v.available]),
+    ).toEqual([
       ["S", true, true],
       ["M", true, true],
       ["L", true, false],
@@ -116,7 +135,9 @@ describe("getProductOptions", () => {
   it("marks the selected value", () => {
     const opts = getProductOptions(product, { Color: "Blue", Size: "L" });
     const color = opts.find((o) => o.name === "Color")!;
-    expect(color.optionValues.find((v) => v.name === "Blue")!.selected).toBe(true);
+    expect(color.optionValues.find((v) => v.name === "Blue")!.selected).toBe(
+      true,
+    );
   });
 
   it("builds a variantUriQuery per value", () => {
@@ -136,8 +157,14 @@ describe("getProductOptions", () => {
         {
           name: "Material",
           optionValues: [
-            { name: "Cotton", firstSelectableVariant: { product: { handle: "parent" } } },
-            { name: "Wool", firstSelectableVariant: { product: { handle: "wool-tee" } } },
+            {
+              name: "Cotton",
+              firstSelectableVariant: { product: { handle: "parent" } },
+            },
+            {
+              name: "Wool",
+              firstSelectableVariant: { product: { handle: "wool-tee" } },
+            },
           ],
         },
       ],
@@ -154,6 +181,8 @@ describe("getProductOptions", () => {
       options: [{ name: "Size", optionValues: [{ name: "S" }, { name: "M" }] }],
     };
     const opts = getProductOptions(small);
-    expect(opts[0]!.optionValues.every((v) => v.exists && v.available)).toBe(true);
+    expect(opts[0]!.optionValues.every((v) => v.exists && v.available)).toBe(
+      true,
+    );
   });
 });

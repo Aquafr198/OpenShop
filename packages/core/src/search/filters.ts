@@ -58,8 +58,6 @@ export function facetInputs(values: SearchFilterValue[]): unknown[] {
 }
 
 /** Merge facet-driven inputs with friendly filters into one array. */
-export function mergeFilters(
-  ...groups: (unknown[] | undefined)[]
-): unknown[] {
+export function mergeFilters(...groups: (unknown[] | undefined)[]): unknown[] {
   return groups.flatMap((group) => group ?? []);
 }

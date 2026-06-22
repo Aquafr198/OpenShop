@@ -62,7 +62,9 @@ function mockClient(): CartClient {
     updateBuyerIdentity: vi.fn(async () =>
       makeCart({ buyerIdentity: { countryCode: "FR" } }),
     ),
-    updateAttributes: vi.fn(async (_id, attributes) => makeCart({ attributes })),
+    updateAttributes: vi.fn(async (_id, attributes) =>
+      makeCart({ attributes }),
+    ),
     updateNote: vi.fn(async (_id, note) => makeCart({ note })),
     get: vi.fn(async () => makeCart()),
   };

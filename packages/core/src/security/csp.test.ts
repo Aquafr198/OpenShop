@@ -22,7 +22,9 @@ describe("createContentSecurityPolicy", () => {
     });
     expect(csp.header).toContain("img-src 'self' https://images.example.com");
     // Default img-src cdn entry is replaced, not appended.
-    expect(csp.header).not.toContain("img-src 'self' data: https://cdn.shopify.com");
+    expect(csp.header).not.toContain(
+      "img-src 'self' data: https://cdn.shopify.com",
+    );
   });
 
   it("accepts a provided nonce", () => {

@@ -15,10 +15,10 @@ npm run dev
 
 ## Configuration
 
-| Variable | Description |
-|---|---|
-| `PUBLIC_STORE_DOMAIN` | Your Shopify store domain (e.g. `my-shop.myshopify.com`) |
-| `PUBLIC_STOREFRONT_API_TOKEN` | Public Storefront API access token |
+| Variable                       | Description                                                |
+| ------------------------------ | ---------------------------------------------------------- |
+| `PUBLIC_STORE_DOMAIN`          | Your Shopify store domain (e.g. `my-shop.myshopify.com`)   |
+| `PUBLIC_STOREFRONT_API_TOKEN`  | Public Storefront API access token                         |
 | `PRIVATE_STOREFRONT_API_TOKEN` | (Optional) Private/delegate token for server-side requests |
 
 ## What's included

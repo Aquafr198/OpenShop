@@ -44,7 +44,9 @@ export function findVariantBySelection(
 }
 
 /** The first available-for-sale variant, falling back to the first variant. */
-export function getDefaultVariant(product: Product): ProductVariant | undefined {
+export function getDefaultVariant(
+  product: Product,
+): ProductVariant | undefined {
   return (
     product.variants.find((v) => v.availableForSale) ?? product.variants[0]
   );

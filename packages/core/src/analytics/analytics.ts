@@ -8,7 +8,11 @@
  * that's easy to get wrong when hand-rolling a storefront.
  */
 
-export type ConsentCategory = "analytics" | "marketing" | "preferences" | "sale_of_data";
+export type ConsentCategory =
+  | "analytics"
+  | "marketing"
+  | "preferences"
+  | "sale_of_data";
 
 export interface ConsentState {
   analytics: boolean;
@@ -38,7 +42,9 @@ export interface AnalyticsEventMap {
 
 export type AnalyticsEventName = keyof AnalyticsEventMap;
 
-export interface AnalyticsEvent<N extends AnalyticsEventName = AnalyticsEventName> {
+export interface AnalyticsEvent<
+  N extends AnalyticsEventName = AnalyticsEventName,
+> {
   name: N;
   payload: AnalyticsEventMap[N];
   timestamp: number;

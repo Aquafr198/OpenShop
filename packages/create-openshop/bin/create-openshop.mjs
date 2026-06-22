@@ -10,8 +10,16 @@
  *   npx create-openshop my-store --template next
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, statSync, copyFileSync } from "node:fs";
-import { resolve, join, basename, relative } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  statSync,
+  copyFileSync,
+} from "node:fs";
+import { resolve, join } from "node:path";
 import { createInterface } from "node:readline";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -80,18 +88,23 @@ async function main() {
 
   console.log("\n🛒 create-openshop\n");
 
-  const projectName = positional[0] || await ask(rl, "Project name: ", "my-openshop-store");
-  const template = flags.template || await ask(
+  const projectName =
+    positional[0] || (await ask(rl, "Project name: ", "my-openshop-store"));
+  const template =
+    flags.template ||
+    (await ask(rl, `Template (${TEMPLATES.join(", ")}): `, TEMPLATES[0]));
+  const storeDomain = await ask(
     rl,
-    `Template (${TEMPLATES.join(", ")}): `,
-    TEMPLATES[0],
+    "Store domain (e.g. my-shop.myshopify.com): ",
+    "demo.myshopify.com",
   );
-  const storeDomain = await ask(rl, "Store domain (e.g. my-shop.myshopify.com): ", "demo.myshopify.com");
 
   rl.close();
 
   if (!TEMPLATES.includes(template)) {
-    console.error(`\n❌ Unknown template "${template}". Available: ${TEMPLATES.join(", ")}`);
+    console.error(
+      `\n❌ Unknown template "${template}". Available: ${TEMPLATES.join(", ")}`,
+    );
     process.exit(1);
   }
 

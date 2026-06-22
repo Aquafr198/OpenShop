@@ -38,16 +38,9 @@ export {
   type ExternalVideoProps,
   type ModelViewerProps,
 } from "./media.js";
-export {
-  NonceProvider,
-  useNonce,
-  type NonceProviderProps,
-} from "./nonce.js";
+export { NonceProvider, useNonce, type NonceProviderProps } from "./nonce.js";
 export { ShopPayButton, type ShopPayButtonProps } from "./shop-pay-button.js";
-export {
-  useVariantSelection,
-  type UseVariantSelection,
-} from "./product.js";
+export { useVariantSelection, type UseVariantSelection } from "./product.js";
 export {
   usePredictiveSearch,
   type UsePredictiveSearch,

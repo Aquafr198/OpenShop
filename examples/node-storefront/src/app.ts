@@ -21,8 +21,20 @@ const i18n = createI18n({
   strategy: "pathname",
   defaultLocale: "en-US",
   locales: [
-    { id: "en-US", language: "EN", country: "US", currency: "USD", label: "English" },
-    { id: "fr-CA", language: "FR", country: "CA", currency: "CAD", label: "Français" },
+    {
+      id: "en-US",
+      language: "EN",
+      country: "US",
+      currency: "USD",
+      label: "English",
+    },
+    {
+      id: "fr-CA",
+      language: "FR",
+      country: "CA",
+      currency: "CAD",
+      label: "Français",
+    },
   ],
 });
 
@@ -35,7 +47,9 @@ export function createApp(options: AppOptions = {}) {
   const cartRoutes = createCartRoutes({ client: cartClient, path: "/cart" });
 
   function localeLinks(appPath: string) {
-    return i18n.alternates(appPath).map((a) => ({ locale: a.locale, href: a.href }));
+    return i18n
+      .alternates(appPath)
+      .map((a) => ({ locale: a.locale, href: a.href }));
   }
 
   return async function handle(request: Request): Promise<Response> {

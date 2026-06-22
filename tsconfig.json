@@ -4,5 +4,9 @@
     "noEmit": true
   },
   "include": [],
-  "exclude": ["**/node_modules", "**/dist", "packages/create-openshop/templates"]
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "packages/create-openshop/templates"
+  ]
 }

@@ -80,7 +80,9 @@ function recompute(id: string, lines: CartLine[]): Cart {
   const totalQuantity = lines.reduce((sum, l) => sum + l.quantity, 0);
   let total = Money.fromMinorUnits(0, CURRENCY);
   for (const line of lines) {
-    total = total.add(Money.from(line.merchandise.price).multiply(line.quantity));
+    total = total.add(
+      Money.from(line.merchandise.price).multiply(line.quantity),
+    );
   }
   const amount = total.toMoneyV2();
   return {
@@ -110,9 +112,14 @@ export function createInMemoryCartClient(): CartClient {
     const lines = [...existing];
     for (const input of inputs) {
       const qty = input.quantity ?? 1;
-      const index = lines.findIndex((l) => l.merchandise.id === input.merchandiseId);
+      const index = lines.findIndex(
+        (l) => l.merchandise.id === input.merchandiseId,
+      );
       if (index >= 0) {
-        lines[index] = buildLine(input.merchandiseId, lines[index]!.quantity + qty);
+        lines[index] = buildLine(
+          input.merchandiseId,
+          lines[index]!.quantity + qty,
+        );
       } else {
         lines.push(buildLine(input.merchandiseId, qty));
       }
@@ -135,7 +142,10 @@ export function createInMemoryCartClient(): CartClient {
           const update = updates.find((u) => u.id === line.id);
           if (!update) return line;
           if (update.quantity === 0) return null;
-          return buildLine(line.merchandise.id, update.quantity ?? line.quantity);
+          return buildLine(
+            line.merchandise.id,
+            update.quantity ?? line.quantity,
+          );
         })
         .filter((l): l is CartLine => l !== null);
       return upsert(cartId, lines);

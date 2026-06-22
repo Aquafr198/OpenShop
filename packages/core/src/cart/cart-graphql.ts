@@ -188,7 +188,9 @@ export function buildCartDocuments(linesFirst: number) {
   const cartQuery = gql<{ cart: RawCart | null }, { id: string }>`
     ${fragment}
     query GetCart($id: ID!) {
-      cart(id: $id) { ...CartFields }
+      cart(id: $id) {
+        ...CartFields
+      }
     }
   `;
 
@@ -199,8 +201,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartCreate($input: CartInput!) {
       cartCreate(input: $input) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -212,8 +220,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
       cartLinesAdd(cartId: $cartId, lines: $lines) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -225,8 +239,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
       cartLinesUpdate(cartId: $cartId, lines: $lines) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -238,8 +258,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
       cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -251,8 +277,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
       cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -264,8 +296,14 @@ export function buildCartDocuments(linesFirst: number) {
     ${fragment}
     mutation CartNoteUpdate($cartId: ID!, $note: String!) {
       cartNoteUpdate(cartId: $cartId, note: $note) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -280,8 +318,14 @@ export function buildCartDocuments(linesFirst: number) {
       $buyerIdentity: CartBuyerIdentityInput!
     ) {
       cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -291,13 +335,16 @@ export function buildCartDocuments(linesFirst: number) {
     { cartId: string; giftCardCodes: string[] }
   >`
     ${fragment}
-    mutation CartGiftCardCodesUpdate(
-      $cartId: ID!
-      $giftCardCodes: [String!]!
-    ) {
+    mutation CartGiftCardCodesUpdate($cartId: ID!, $giftCardCodes: [String!]!) {
       cartGiftCardCodesUpdate(cartId: $cartId, giftCardCodes: $giftCardCodes) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;
@@ -312,8 +359,14 @@ export function buildCartDocuments(linesFirst: number) {
       $attributes: [AttributeInput!]!
     ) {
       cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
-        cart { ...CartFields }
-        userErrors { field message code }
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
       }
     }
   `;

@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  parseCookies,
-  getCartId,
-  setCartIdCookie,
-} from "./cookies.js";
+import { parseCookies, getCartId, setCartIdCookie } from "./cookies.js";
 import { createStorefrontProxy } from "./storefront-proxy.js";
 import { createCartRoutes } from "./cart-routes.js";
 import { createServerHandlers } from "./router.js";
@@ -60,11 +56,12 @@ describe("cookies", () => {
 
 describe("storefront proxy", () => {
   function client() {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ data: { shop: { name: "x" } } }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ data: { shop: { name: "x" } } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
     );
     return createStorefrontClient({
       storeDomain: "demo.myshopify.com",
@@ -176,7 +173,11 @@ describe("cart routes", () => {
           accept: "application/json",
           cookie: "openshop_cart_id=gid%3A%2F%2Fshopify%2FCart%2F1",
         },
-        body: JSON.stringify({ action: "add", merchandiseId: "v1", quantity: 1 }),
+        body: JSON.stringify({
+          action: "add",
+          merchandiseId: "v1",
+          quantity: 1,
+        }),
       }),
     );
 
@@ -215,7 +216,10 @@ describe("cart routes", () => {
           "content-type": "application/x-www-form-urlencoded",
           referer: "https://evil.example/phish",
         },
-        body: new URLSearchParams({ action: "add", merchandiseId: "v1" }).toString(),
+        body: new URLSearchParams({
+          action: "add",
+          merchandiseId: "v1",
+        }).toString(),
       }),
     );
     expect(res?.status).toBe(303);
@@ -225,8 +229,8 @@ describe("cart routes", () => {
 
 describe("createServerHandlers", () => {
   it("composes proxy + cart routes and redirects /admin", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ data: {} }), { status: 200 }),
     );
     const storefront = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
@@ -241,7 +245,9 @@ describe("createServerHandlers", () => {
       });
 
     // Unowned route -> null (framework handles it).
-    expect(await handleShopifyRoutes(new Request("https://x.com/page"))).toBeNull();
+    expect(
+      await handleShopifyRoutes(new Request("https://x.com/page")),
+    ).toBeNull();
 
     // /admin redirect after a 404.
     const redirect = await handleShopifyRedirects(

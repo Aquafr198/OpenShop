@@ -9,7 +9,11 @@ const locales: Locale[] = [
   { id: "fr-CA", language: "FR", country: "CA" },
 ];
 
-const i18n = createI18n({ strategy: "pathname", locales, defaultLocale: "en-US" });
+const i18n = createI18n({
+  strategy: "pathname",
+  locales,
+  defaultLocale: "en-US",
+});
 
 function wrapper(locale: Locale) {
   return ({ children }: { children: ReactNode }) =>

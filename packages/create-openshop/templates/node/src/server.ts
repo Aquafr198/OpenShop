@@ -1,4 +1,8 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import {
   createServerHandlers,
   createContentSecurityPolicy,
@@ -37,11 +41,15 @@ async function app(request: Request): Promise<Response> {
 
   if (appPath === "/") {
     const product = await catalog.getProduct("classic-tee");
-    html = page(csp.nonce, locale.id, `
+    html = page(
+      csp.nonce,
+      locale.id,
+      `
       <h1>Welcome to {{PROJECT_NAME}}</h1>
       <p>Cart: ${cartCount} items</p>
       ${product ? `<h2>${esc(product.title)}</h2><p>${esc(formatMoney(product.variants[0]?.price ?? { amount: "0", currencyCode: "USD" }))}</p>` : "<p>Configure your .env with a real store domain to see products.</p>"}
-    `);
+    `,
+    );
   } else {
     // Post-router: redirects
     const redirect = await handleShopifyRedirects(request);
@@ -49,16 +57,24 @@ async function app(request: Request): Promise<Response> {
     html = page(csp.nonce, locale.id, "<h1>404 — Not found</h1>");
     return new Response(html, {
       status: 404,
-      headers: { "content-type": "text/html; charset=utf-8", "content-security-policy": csp.header },
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "content-security-policy": csp.header,
+      },
     });
   }
 
   return new Response(html, {
-    headers: { "content-type": "text/html; charset=utf-8", "content-security-policy": csp.header },
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "content-security-policy": csp.header,
+    },
   });
 }
 
-function esc(s: string) { return s.replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function esc(s: string) {
+  return s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 function page(nonce: string, lang: string, body: string) {
   return `<!doctype html>
@@ -77,11 +93,13 @@ async function toRequest(req: IncomingMessage): Promise<Request> {
     else if (v) headers.set(k, v);
   }
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  const body = hasBody ? await new Promise<Buffer>((res) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (c) => chunks.push(c as Buffer));
-    req.on("end", () => res(Buffer.concat(chunks)));
-  }) : undefined;
+  const body = hasBody
+    ? await new Promise<Buffer>((res) => {
+        const chunks: Buffer[] = [];
+        req.on("data", (c) => chunks.push(c as Buffer));
+        req.on("end", () => res(Buffer.concat(chunks)));
+      })
+    : undefined;
   const init: RequestInit = { method: req.method, headers };
   if (body) init.body = new Uint8Array(body);
   return new Request(url, init);
@@ -92,7 +110,9 @@ createServer((req, res) => {
     const request = await toRequest(req);
     const response = await app(request);
     const h: Record<string, string> = {};
-    response.headers.forEach((v, k) => { h[k] = v; });
+    response.headers.forEach((v, k) => {
+      h[k] = v;
+    });
     res.writeHead(response.status, h);
     res.end(Buffer.from(await response.arrayBuffer()));
   })();

@@ -159,13 +159,15 @@ export class StorefrontClient {
         signal,
       );
       if (!response.ok && response.status >= 500) {
-        throw new StorefrontHttpError(response.status, await safeText(response));
+        throw new StorefrontHttpError(
+          response.status,
+          await safeText(response),
+        );
       }
       return {
         status: response.status,
         body: await safeText(response),
-        contentType:
-          response.headers.get("content-type") ?? "application/json",
+        contentType: response.headers.get("content-type") ?? "application/json",
       };
     };
     const guarded = this.breaker ? () => this.breaker!.execute(run) : run;

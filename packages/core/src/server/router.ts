@@ -85,7 +85,7 @@ export function createServerHandlers(
 
   const redirectHandler =
     options.redirects === false
-      ? (async () => null)
+      ? async () => null
       : createRedirectHandler({
           storefront: options.storefront,
           storeDomain: options.storeDomain,

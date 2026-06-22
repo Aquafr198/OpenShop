@@ -43,7 +43,11 @@ export function useVariantSelection(
   const options = computed(() =>
     productRef.value.options.map((option) => ({
       name: option.name,
-      values: getOptionValueStates(productRef.value, option.name, selection.value),
+      values: getOptionValueStates(
+        productRef.value,
+        option.name,
+        selection.value,
+      ),
     })),
   );
 

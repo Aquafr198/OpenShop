@@ -115,6 +115,8 @@ describe("WebStorageAdapter", () => {
       removeItem: () => {},
     };
     const adapter = new WebStorageAdapter(throwing);
-    await expect(adapter.set("k", { value: 1, storedAt: 0 })).resolves.toBeUndefined();
+    await expect(
+      adapter.set("k", { value: 1, storedAt: 0 }),
+    ).resolves.toBeUndefined();
   });
 });

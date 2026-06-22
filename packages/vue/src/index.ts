@@ -16,10 +16,7 @@ export {
   useCartIsUpdating,
 } from "./cart.js";
 export { useMoney } from "./money.js";
-export {
-  useVariantSelection,
-  type UseVariantSelection,
-} from "./product.js";
+export { useVariantSelection, type UseVariantSelection } from "./product.js";
 export {
   usePredictiveSearch,
   type UsePredictiveSearch,

@@ -15,12 +15,13 @@ describe("getSeoTags", () => {
 
     const title = tags.find((t) => t.tag === "title");
     expect(title?.children).toBe("Classic Tee | My Shop");
-    expect(tags.find((t) => t.attributes.property === "og:title")?.attributes.content).toBe(
-      "Classic Tee | My Shop",
-    );
-    expect(tags.find((t) => t.attributes.rel === "canonical")?.attributes.href).toBe(
-      "https://shop.com/products/tee",
-    );
+    expect(
+      tags.find((t) => t.attributes.property === "og:title")?.attributes
+        .content,
+    ).toBe("Classic Tee | My Shop");
+    expect(
+      tags.find((t) => t.attributes.rel === "canonical")?.attributes.href,
+    ).toBe("https://shop.com/products/tee");
     expect(tags.find((t) => t.attributes.name === "twitter:card")).toBeTruthy();
   });
 
@@ -30,20 +31,22 @@ describe("getSeoTags", () => {
       { title: "Override" },
     );
     expect(tags.find((t) => t.tag === "title")?.children).toBe("Override");
-    expect(tags.find((t) => t.attributes.name === "description")?.attributes.content).toBe(
-      "base",
-    );
+    expect(
+      tags.find((t) => t.attributes.name === "description")?.attributes.content,
+    ).toBe("base");
   });
 
   it("emits robots noindex/nofollow", () => {
     const tags = getSeoTags({ robots: { noIndex: true, noFollow: true } });
-    expect(tags.find((t) => t.attributes.name === "robots")?.attributes.content).toBe(
-      "noindex,nofollow",
-    );
+    expect(
+      tags.find((t) => t.attributes.name === "robots")?.attributes.content,
+    ).toBe("noindex,nofollow");
   });
 
   it("serializes jsonLd into a script tag, escaping </script", () => {
-    const tags = getSeoTags({ jsonLd: { "@type": "Product", evil: "</script>" } });
+    const tags = getSeoTags({
+      jsonLd: { "@type": "Product", evil: "</script>" },
+    });
     const rendered = renderSeoTags(tags);
     expect(rendered).toContain("application/ld+json");
     // The dangerous sequence inside the JSON body is escaped...
@@ -92,11 +95,13 @@ describe("sitemap", () => {
         loc: "https://shop.com/products/tee",
         lastmod: "2026-01-01",
         priority: 0.8,
-        alternates: [{ hreflang: "fr-ca", href: "https://shop.com/fr-ca/products/tee" }],
+        alternates: [
+          { hreflang: "fr-ca", href: "https://shop.com/fr-ca/products/tee" },
+        ],
       },
     ]);
     expect(xml).toContain("<urlset");
-    expect(xml).toContain('xmlns:xhtml');
+    expect(xml).toContain("xmlns:xhtml");
     expect(xml).toContain("<priority>0.8</priority>");
     expect(xml).toContain('hreflang="fr-ca"');
   });
@@ -107,7 +112,9 @@ describe("sitemap", () => {
   });
 
   it("renders a sitemap index", () => {
-    const xml = renderSitemapIndex([{ loc: "https://shop.com/sitemap-products.xml" }]);
+    const xml = renderSitemapIndex([
+      { loc: "https://shop.com/sitemap-products.xml" },
+    ]);
     expect(xml).toContain("<sitemapindex");
     expect(xml).toContain("sitemap-products.xml");
   });

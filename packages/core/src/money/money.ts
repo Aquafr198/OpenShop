@@ -43,7 +43,9 @@ export class Money {
 
   private constructor(minorUnits: number, currencyCode: string) {
     if (!Number.isInteger(minorUnits)) {
-      throw new RangeError(`Money minor units must be an integer, got ${minorUnits}`);
+      throw new RangeError(
+        `Money minor units must be an integer, got ${minorUnits}`,
+      );
     }
     this.minorUnits = minorUnits;
     this.currencyCode = currencyCode.toUpperCase();
@@ -158,7 +160,11 @@ export function formatMoney(
   const amount = Number.parseFloat(v2.amount);
 
   try {
-    const formatter = getFormatter(locale, v2.currencyCode, options.numberFormat);
+    const formatter = getFormatter(
+      locale,
+      v2.currencyCode,
+      options.numberFormat,
+    );
     return formatter.format(amount);
   } catch {
     return `${v2.currencyCode} ${v2.amount}`;
@@ -177,7 +183,11 @@ function getFormatter(
   const key = `${String(locale)}|${currency}|${JSON.stringify(extra ?? {})}`;
   let fmt = formatterCache.get(key);
   if (fmt) return fmt;
-  fmt = new Intl.NumberFormat(locale, { style: "currency", currency, ...extra });
+  fmt = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    ...extra,
+  });
   if (formatterCache.size >= MAX_FORMATTERS) {
     const oldest = formatterCache.keys().next().value;
     if (oldest !== undefined) formatterCache.delete(oldest);

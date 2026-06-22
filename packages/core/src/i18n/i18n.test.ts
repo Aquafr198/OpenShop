@@ -5,7 +5,13 @@ import { matchAcceptLanguage, parseAcceptLanguage } from "./accept-language.js";
 const locales: Locale[] = [
   { id: "en-US", language: "EN", country: "US", currency: "USD" },
   { id: "fr-CA", language: "FR", country: "CA", currency: "CAD" },
-  { id: "de-DE", language: "DE", country: "DE", subdomain: "de", host: "example.de" },
+  {
+    id: "de-DE",
+    language: "DE",
+    country: "DE",
+    subdomain: "de",
+    host: "example.de",
+  },
 ];
 
 function req(url: string, headers?: Record<string, string>): Request {
@@ -13,7 +19,11 @@ function req(url: string, headers?: Record<string, string>): Request {
 }
 
 describe("createI18n — pathname strategy", () => {
-  const i18n = createI18n({ strategy: "pathname", locales, defaultLocale: "en-US" });
+  const i18n = createI18n({
+    strategy: "pathname",
+    locales,
+    defaultLocale: "en-US",
+  });
 
   it("detects a locale from the subfolder and reports the basename", () => {
     const m = i18n.match(req("https://shop.com/fr-ca/products/tee"));
@@ -53,7 +63,11 @@ describe("createI18n — pathname strategy", () => {
 });
 
 describe("createI18n — subdomain strategy", () => {
-  const i18n = createI18n({ strategy: "subdomain", locales, defaultLocale: "en-US" });
+  const i18n = createI18n({
+    strategy: "subdomain",
+    locales,
+    defaultLocale: "en-US",
+  });
 
   it("detects a locale from the subdomain", () => {
     const m = i18n.match(req("https://de.example.com/products/tee"));
@@ -61,13 +75,21 @@ describe("createI18n — subdomain strategy", () => {
   });
 
   it("builds an absolute localized URL with the right subdomain", () => {
-    const url = i18n.localizePath("/products/tee", i18n.byId("de-DE")!, "https://www.example.com");
+    const url = i18n.localizePath(
+      "/products/tee",
+      i18n.byId("de-DE")!,
+      "https://www.example.com",
+    );
     expect(url).toBe("https://de.example.com/products/tee");
   });
 });
 
 describe("createI18n — domain strategy", () => {
-  const i18n = createI18n({ strategy: "domain", locales, defaultLocale: "en-US" });
+  const i18n = createI18n({
+    strategy: "domain",
+    locales,
+    defaultLocale: "en-US",
+  });
 
   it("detects a locale from the host", () => {
     const m = i18n.match(req("https://example.de/products/tee"));

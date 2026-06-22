@@ -221,7 +221,10 @@ export class CustomerAccountAuth {
   }
 
   /** Build the logout URL; redirect the buyer here to end their session. */
-  async buildLogoutUrl(idToken: string, postLogoutRedirectUri?: string): Promise<string> {
+  async buildLogoutUrl(
+    idToken: string,
+    postLogoutRedirectUri?: string,
+  ): Promise<string> {
     const endpoints = await this.getEndpoints();
     const params = new URLSearchParams({ id_token_hint: idToken });
     if (postLogoutRedirectUri) {

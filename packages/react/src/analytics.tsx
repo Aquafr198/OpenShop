@@ -56,7 +56,10 @@ export function useAnalyticsEffect<N extends AnalyticsEventName>(
 }
 
 /** Read and update consent state reactively. */
-export function useConsent(): [ConsentState, (next: Partial<ConsentState>) => void] {
+export function useConsent(): [
+  ConsentState,
+  (next: Partial<ConsentState>) => void,
+] {
   const analytics = useAnalytics();
   const [consent, setConsentState] = useState<ConsentState>(() =>
     analytics.getConsent(),

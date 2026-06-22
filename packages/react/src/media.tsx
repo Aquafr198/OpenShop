@@ -16,7 +16,11 @@ export interface VideoProps {
 }
 
 /** Renders a Storefront `Video` as an HTML5 `<video>`. */
-export function Video({ data, controls = true, className }: VideoProps): ReactElement {
+export function Video({
+  data,
+  controls = true,
+  className,
+}: VideoProps): ReactElement {
   return createElement(
     "video",
     {
@@ -40,7 +44,10 @@ export interface ExternalVideoProps {
 }
 
 /** Renders a Storefront `ExternalVideo` (YouTube/Vimeo) as an iframe. */
-export function ExternalVideo({ data, className }: ExternalVideoProps): ReactElement | null {
+export function ExternalVideo({
+  data,
+  className,
+}: ExternalVideoProps): ReactElement | null {
   const src = externalVideoEmbedUrl(data);
   if (!src) return null;
   return createElement("iframe", {
@@ -58,8 +65,12 @@ export interface ModelViewerProps {
 }
 
 /** Renders a Storefront `Model3d` as a `<model-viewer>` web component. */
-export function ModelViewer({ data, className }: ModelViewerProps): ReactElement | null {
-  const source = data.sources.find((s) => s.url.endsWith(".glb")) ?? data.sources[0];
+export function ModelViewer({
+  data,
+  className,
+}: ModelViewerProps): ReactElement | null {
+  const source =
+    data.sources.find((s) => s.url.endsWith(".glb")) ?? data.sources[0];
   if (!source) return null;
   return createElement("model-viewer", {
     src: source.url,
@@ -80,19 +91,29 @@ export interface MediaFileProps {
  * Renders any Storefront media node to the appropriate element. Unknown media
  * types render `null` (never throws).
  */
-export function MediaFile({ media, className }: MediaFileProps): ReactElement | null {
+export function MediaFile({
+  media,
+  className,
+}: MediaFileProps): ReactElement | null {
   switch (mediaKind(media)) {
     case "image": {
       const node = media as Extract<MediaNode, { __typename: "MediaImage" }>;
       return createElement(Image, {
         src: node.image.url,
-        ...(node.alt ? { alt: node.alt } : node.image.altText ? { alt: node.image.altText } : {}),
+        ...(node.alt
+          ? { alt: node.alt }
+          : node.image.altText
+            ? { alt: node.image.altText }
+            : {}),
         ...(node.image.width ? { width: node.image.width } : {}),
         ...(className ? { className } : {}),
       });
     }
     case "video":
-      return createElement(Video, { data: media as VideoNode, ...(className ? { className } : {}) });
+      return createElement(Video, {
+        data: media as VideoNode,
+        ...(className ? { className } : {}),
+      });
     case "external-video":
       return createElement(ExternalVideo, {
         data: media as ExternalVideoNode,

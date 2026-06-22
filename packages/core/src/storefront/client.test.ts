@@ -21,9 +21,11 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe("StorefrontClient", () => {
   it("sends the public token header and returns typed data", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({ data: { shop: { name: "OpenShop Demo" } } }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ data: { shop: { name: "OpenShop Demo" } } }),
+      );
     const client = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
       publicAccessToken: "public-token",
@@ -35,15 +37,17 @@ describe("StorefrontClient", () => {
 
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toContain("demo.myshopify.com/api/2025-10/graphql.json");
-    expect((init.headers as Record<string, string>)["X-Shopify-Storefront-Access-Token"]).toBe(
-      "public-token",
-    );
+    expect(
+      (init.headers as Record<string, string>)[
+        "X-Shopify-Storefront-Access-Token"
+      ],
+    ).toBe("public-token");
   });
 
   it("uses the private token header and forwards buyer IP", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({ data: { shop: { name: "x" } } }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: { shop: { name: "x" } } }));
     const client = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
       privateAccessToken: "private-token",
@@ -52,15 +56,18 @@ describe("StorefrontClient", () => {
     });
     await client.query(ShopQuery);
 
-    const headers = fetchMock.mock.calls[0]![1].headers as Record<string, string>;
+    const headers = fetchMock.mock.calls[0]![1].headers as Record<
+      string,
+      string
+    >;
     expect(headers["Shopify-Storefront-Private-Token"]).toBe("private-token");
     expect(headers["Shopify-Storefront-Buyer-IP"]).toBe("203.0.113.1");
   });
 
   it("merges i18n into variables", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({ data: { shop: { name: "x" } } }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: { shop: { name: "x" } } }));
     const client = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
       publicAccessToken: "t",
@@ -74,9 +81,11 @@ describe("StorefrontClient", () => {
   });
 
   it("throws StorefrontGraphQLError on GraphQL errors", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({ errors: [{ message: "Field 'shop' doesn't exist" }] }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ errors: [{ message: "Field 'shop' doesn't exist" }] }),
+      );
     const client = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
       publicAccessToken: "t",
@@ -117,9 +126,9 @@ describe("StorefrontClient", () => {
   });
 
   it("caches read queries with a cache adapter", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      jsonResponse({ data: { shop: { name: "cached" } } }),
-    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: { shop: { name: "cached" } } }));
     const client = createStorefrontClient({
       storeDomain: "demo.myshopify.com",
       publicAccessToken: "t",

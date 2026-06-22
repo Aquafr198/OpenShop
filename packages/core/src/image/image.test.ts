@@ -13,7 +13,9 @@ describe("isShopifyImage", () => {
 
 describe("imageUrl", () => {
   it("adds transform params while preserving existing query", () => {
-    const url = new URL(imageUrl(CDN, { width: 800, height: 600, crop: "center" }));
+    const url = new URL(
+      imageUrl(CDN, { width: 800, height: 600, crop: "center" }),
+    );
     expect(url.searchParams.get("width")).toBe("800");
     expect(url.searchParams.get("height")).toBe("600");
     expect(url.searchParams.get("crop")).toBe("center");
@@ -21,9 +23,9 @@ describe("imageUrl", () => {
   });
 
   it("rounds fractional widths", () => {
-    expect(new URL(imageUrl(CDN, { width: 799.6 })).searchParams.get("width")).toBe(
-      "800",
-    );
+    expect(
+      new URL(imageUrl(CDN, { width: 799.6 })).searchParams.get("width"),
+    ).toBe("800");
   });
 
   it("leaves non-Shopify URLs untouched", () => {

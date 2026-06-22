@@ -38,7 +38,11 @@ describe("readTrackingValues", () => {
 
 describe("mapEventToShopify", () => {
   it("maps a page view", () => {
-    const m = mapEventToShopify("page_viewed", { url: "https://shop.com/" }, ctx);
+    const m = mapEventToShopify(
+      "page_viewed",
+      { url: "https://shop.com/" },
+      ctx,
+    );
     expect(m?.kind).toBe("page_view");
     expect(m?.payload).toMatchObject({
       pageType: "page",
@@ -52,7 +56,11 @@ describe("mapEventToShopify", () => {
   });
 
   it("maps a product view with resourceId", () => {
-    const m = mapEventToShopify("product_viewed", { productId: "gid://shopify/Product/9" }, ctx);
+    const m = mapEventToShopify(
+      "product_viewed",
+      { productId: "gid://shopify/Product/9" },
+      ctx,
+    );
     expect(m?.kind).toBe("product_view");
     expect(m?.payload.resourceId).toBe("gid://shopify/Product/9");
     expect(m?.payload.pageType).toBe("product");
@@ -74,7 +82,11 @@ describe("mapEventToShopify", () => {
   });
 
   it("maps cart events to the cart kind", () => {
-    const m = mapEventToShopify("product_added_to_cart", { variantId: "v", quantity: 1 }, ctx);
+    const m = mapEventToShopify(
+      "product_added_to_cart",
+      { variantId: "v", quantity: 1 },
+      ctx,
+    );
     expect(m?.kind).toBe("cart");
   });
 });
@@ -107,7 +119,9 @@ describe("createMonorailTransport", () => {
       fetch: fetchMock as unknown as typeof fetch,
       disableBeacon: true,
     });
-    await expect(transport.send([{ schema_id: "s", payload: {} }])).resolves.toBeUndefined();
+    await expect(
+      transport.send([{ schema_id: "s", payload: {} }]),
+    ).resolves.toBeUndefined();
   });
 
   it("no-ops on an empty batch", async () => {
@@ -158,7 +172,9 @@ describe("connectShopifyAnalytics", () => {
 
   it("sends mapped events when consent is granted", () => {
     const { analytics, sent } = setup(true);
-    analytics.publish("product_viewed", { productId: "gid://shopify/Product/1" });
+    analytics.publish("product_viewed", {
+      productId: "gid://shopify/Product/1",
+    });
     expect(sent).toHaveLength(1);
     expect(sent[0]![0]!.schema_id).toContain("trekkie_storefront_page_view");
   });

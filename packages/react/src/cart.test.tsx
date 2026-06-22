@@ -52,9 +52,7 @@ describe("useCart / useCartActions", () => {
 
   it("throws when used outside a provider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => renderHook(() => useCartCount())).toThrow(
-      /CartProvider/,
-    );
+    expect(() => renderHook(() => useCartCount())).toThrow(/CartProvider/);
     spy.mockRestore();
   });
 });

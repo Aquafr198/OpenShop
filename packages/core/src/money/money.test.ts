@@ -58,9 +58,12 @@ describe("Money", () => {
 
 describe("formatMoney", () => {
   it("formats with Intl", () => {
-    const formatted = formatMoney({ amount: "19.99", currencyCode: "USD" }, {
-      locale: "en-US",
-    });
+    const formatted = formatMoney(
+      { amount: "19.99", currencyCode: "USD" },
+      {
+        locale: "en-US",
+      },
+    );
     expect(formatted).toBe("$19.99");
   });
 

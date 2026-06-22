@@ -1,7 +1,4 @@
-export {
-  readTrackingValues,
-  type TrackingValues,
-} from "./tracking.js";
+export { readTrackingValues, type TrackingValues } from "./tracking.js";
 export {
   mapEventToShopify,
   type ShopifyAnalyticsContext,

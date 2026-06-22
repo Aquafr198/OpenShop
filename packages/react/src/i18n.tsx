@@ -1,4 +1,10 @@
-import { createContext, createElement, useCallback, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  type ReactNode,
+} from "react";
 import type { I18n, Locale } from "@openshop/core";
 
 interface I18nContextValue {

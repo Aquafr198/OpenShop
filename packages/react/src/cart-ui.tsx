@@ -107,7 +107,10 @@ export function CartTotal({ field = "total", className }: CartTotalProps) {
       : s.cart?.cost.totalAmount,
   );
   if (!amount) return null;
-  return createElement(Money, { data: amount, ...(className ? { className } : {}) });
+  return createElement(Money, {
+    data: amount,
+    ...(className ? { className } : {}),
+  });
 }
 
 export interface CheckoutButtonProps {

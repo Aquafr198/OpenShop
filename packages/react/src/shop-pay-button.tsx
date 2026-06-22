@@ -1,5 +1,8 @@
 import { createElement, useEffect, useRef } from "react";
-import { shopPayButtonAttributes, type ShopPayButtonInput } from "@openshop/core";
+import {
+  shopPayButtonAttributes,
+  type ShopPayButtonInput,
+} from "@openshop/core";
 
 export interface ShopPayButtonProps extends ShopPayButtonInput {
   /** Custom element width. Default "100%". */
@@ -15,7 +18,9 @@ export interface ShopPayButtonProps extends ShopPayButtonInput {
  * wrapper builds the correct `store-url` and `variants` attributes and mounts
  * the element. If the SDK script isn't already on the page, it's injected once.
  */
-export function ShopPayButton(props: ShopPayButtonProps): ReturnType<typeof createElement> {
+export function ShopPayButton(
+  props: ShopPayButtonProps,
+): ReturnType<typeof createElement> {
   const { storeDomain, variantIds, variants, width, className, style } = props;
   const ref = useRef<HTMLDivElement>(null);
 

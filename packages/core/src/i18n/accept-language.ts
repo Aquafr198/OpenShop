@@ -20,7 +20,10 @@ export function parseAcceptLanguage(header: string | null): WeightedTag[] {
       const [tag, ...params] = part.trim().split(";");
       const qParam = params.find((p) => p.trim().startsWith("q="));
       const q = qParam ? Number.parseFloat(qParam.split("=")[1] ?? "1") : 1;
-      return { tag: (tag ?? "").trim().toLowerCase(), q: Number.isFinite(q) ? q : 1 };
+      return {
+        tag: (tag ?? "").trim().toLowerCase(),
+        q: Number.isFinite(q) ? q : 1,
+      };
     })
     .filter((t) => t.tag.length > 0)
     .sort((a, b) => b.q - a.q);

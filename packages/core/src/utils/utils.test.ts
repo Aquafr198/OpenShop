@@ -4,9 +4,7 @@ import { flattenConnection } from "./connection.js";
 
 describe("parseGid", () => {
   it("parses resource and id", () => {
-    const { id, resource, resourceId } = parseGid(
-      "gid://shopify/Product/123",
-    );
+    const { id, resource, resourceId } = parseGid("gid://shopify/Product/123");
     expect(id).toBe("123");
     expect(resource).toBe("Product");
     expect(resourceId).toBe("123");

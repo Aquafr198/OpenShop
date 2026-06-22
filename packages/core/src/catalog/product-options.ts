@@ -53,7 +53,10 @@ export interface ProductOptionGroup {
 }
 
 /** Index of the currently-selected value for an option, defaulting to 0. */
-function selectedIndex(option: EncodableOption, selection: OptionSelection): number {
+function selectedIndex(
+  option: EncodableOption,
+  selection: OptionSelection,
+): number {
   const value = selection[option.name];
   if (value === undefined) return 0;
   const idx = option.optionValues.findIndex((v) => v.name === value);
@@ -88,7 +91,8 @@ export function getProductOptions(
         ? isOptionValueCombinationInEncodedVariant(target, availability)
         : exists;
 
-      const targetHandle = value.firstSelectableVariant?.product?.handle ?? null;
+      const targetHandle =
+        value.firstSelectableVariant?.product?.handle ?? null;
       const isDifferentProduct = Boolean(
         targetHandle && targetHandle !== product.handle,
       );

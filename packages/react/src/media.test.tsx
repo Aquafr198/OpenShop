@@ -12,7 +12,11 @@ describe("<MediaFile>", () => {
   it("renders a MediaImage via the responsive Image", () => {
     const html = render({
       __typename: "MediaImage",
-      image: { url: "https://cdn.shopify.com/s/files/1/tee.jpg", altText: "Tee", width: 800 },
+      image: {
+        url: "https://cdn.shopify.com/s/files/1/tee.jpg",
+        altText: "Tee",
+        width: 800,
+      },
     });
     expect(html).toContain("<img");
     expect(html).toContain('alt="Tee"');
@@ -43,7 +47,9 @@ describe("<MediaFile>", () => {
   it("renders a Model3d as model-viewer", () => {
     const html = render({
       __typename: "Model3d",
-      sources: [{ url: "https://cdn/model.glb", mimeType: "model/gltf-binary" }],
+      sources: [
+        { url: "https://cdn/model.glb", mimeType: "model/gltf-binary" },
+      ],
       alt: "3D model",
     });
     expect(html).toContain("<model-viewer");

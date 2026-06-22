@@ -14,10 +14,7 @@ export {
   type CartRoutesOptions,
   type CartAction,
 } from "./cart-routes.js";
-export {
-  createRedirectHandler,
-  type RedirectOptions,
-} from "./redirects.js";
+export { createRedirectHandler, type RedirectOptions } from "./redirects.js";
 export {
   parseCookies,
   getCookie,

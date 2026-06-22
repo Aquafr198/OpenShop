@@ -14,14 +14,18 @@
 declare const dataBrand: unique symbol;
 declare const varsBrand: unique symbol;
 
-export interface TypedDocument<TData = unknown, TVariables = Record<string, never>> {
+export interface TypedDocument<
+  TData = unknown,
+  TVariables = Record<string, never>,
+> {
   readonly source: string;
   /** Phantom fields — never present at runtime, used only for type inference. */
   readonly [dataBrand]?: TData;
   readonly [varsBrand]?: TVariables;
 }
 
-export type ResultOf<D> = D extends TypedDocument<infer T, infer _V> ? T : never;
+export type ResultOf<D> =
+  D extends TypedDocument<infer T, infer _V> ? T : never;
 export type VariablesOf<D> =
   D extends TypedDocument<infer _T, infer V> ? V : never;
 
@@ -49,6 +53,8 @@ export function gql<TData = unknown, TVariables = Record<string, never>>(
 }
 
 /** Coerce a raw string or a TypedDocument into a query string. */
-export function documentSource(doc: string | TypedDocument<unknown, unknown>): string {
+export function documentSource(
+  doc: string | TypedDocument<unknown, unknown>,
+): string {
   return typeof doc === "string" ? doc : doc.source;
 }

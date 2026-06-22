@@ -28,7 +28,9 @@ export interface CustomerPrivacyApi {
 }
 
 /** Map Shopify's tri-state consent onto our boolean `ConsentState`. */
-export function mapVisitorConsent(consent: ShopifyVisitorConsent): ConsentState {
+export function mapVisitorConsent(
+  consent: ShopifyVisitorConsent,
+): ConsentState {
   const granted = (value?: string) => value === "yes";
   return {
     analytics: granted(consent.analytics),
@@ -39,8 +41,9 @@ export function mapVisitorConsent(consent: ShopifyVisitorConsent): ConsentState 
 }
 
 function readGlobalApi(): CustomerPrivacyApi | undefined {
-  const shopify = (globalThis as { Shopify?: { customerPrivacy?: CustomerPrivacyApi } })
-    .Shopify;
+  const shopify = (
+    globalThis as { Shopify?: { customerPrivacy?: CustomerPrivacyApi } }
+  ).Shopify;
   return shopify?.customerPrivacy;
 }
 

@@ -21,12 +21,7 @@ import {
   type CartCookieConfig,
 } from "./cookies.js";
 
-export type CartAction =
-  | "add"
-  | "update"
-  | "remove"
-  | "discount"
-  | "clear";
+export type CartAction = "add" | "update" | "remove" | "discount" | "clear";
 
 export interface CartRoutesOptions {
   client: CartClient;
@@ -153,9 +148,7 @@ export function createCartRoutes(options: CartRoutesOptions) {
     }
   }
 
-  return async function cartRoutes(
-    request: Request,
-  ): Promise<Response | null> {
+  return async function cartRoutes(request: Request): Promise<Response | null> {
     const url = new URL(request.url);
     if (url.pathname !== path) return null;
     if (request.method !== "POST") return null;
@@ -198,7 +191,10 @@ export function createCartRoutes(options: CartRoutesOptions) {
     // No-JS: redirect back so the browser re-renders the updated cart.
     // Only honor a same-origin Referer to avoid an open-redirect via a forged
     // header; otherwise fall back to the configured path or the site root.
-    headers.set("location", safeRedirectTarget(request, url, options.redirectTo));
+    headers.set(
+      "location",
+      safeRedirectTarget(request, url, options.redirectTo),
+    );
     return new Response(null, { status: 303, headers });
   };
 }
