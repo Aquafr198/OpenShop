@@ -1,5 +1,12 @@
 # @openshop/svelte
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [1bb072b]
+  - @openshop/core@0.6.0
+
 ## 0.5.1
 
 ### Patch Changes
