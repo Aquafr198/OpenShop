@@ -12,6 +12,7 @@ export * from "./reactive/index.js";
 export * from "./money/index.js";
 export * from "./storefront/index.js";
 export * from "./cart/index.js";
+export * from "./utils/index.js";
 export * from "./cache-adapters/index.js";
 export * from "./catalog/index.js";
 export * from "./consent/index.js";

@@ -14,6 +14,10 @@ export interface CartStores {
     updateLine: CartStore["updateLine"];
     removeLine: CartStore["removeLine"];
     setDiscountCodes: CartStore["setDiscountCodes"];
+    setGiftCardCodes: CartStore["setGiftCardCodes"];
+    setBuyerIdentity: CartStore["setBuyerIdentity"];
+    setAttributes: CartStore["setAttributes"];
+    setNote: CartStore["setNote"];
     refresh: CartStore["refresh"];
   };
 }
@@ -43,6 +47,10 @@ export function createCartStores(cart: CartStore): CartStores {
       updateLine: cart.updateLine.bind(cart),
       removeLine: cart.removeLine.bind(cart),
       setDiscountCodes: cart.setDiscountCodes.bind(cart),
+      setGiftCardCodes: cart.setGiftCardCodes.bind(cart),
+      setBuyerIdentity: cart.setBuyerIdentity.bind(cart),
+      setAttributes: cart.setAttributes.bind(cart),
+      setNote: cart.setNote.bind(cart),
       refresh: cart.refresh.bind(cart),
     },
   };

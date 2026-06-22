@@ -6,6 +6,7 @@ export default defineConfig({
     "src/reactive/index.ts",
     "src/storefront/index.ts",
     "src/cart/index.ts",
+    "src/utils/index.ts",
     "src/cache-adapters/index.ts",
     "src/catalog/index.ts",
     "src/consent/index.ts",

@@ -25,6 +25,10 @@
       "types": "./dist/cart/index.d.ts",
       "import": "./dist/cart/index.js"
     },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    },
     "./cache-adapters": {
       "types": "./dist/cache-adapters/index.d.ts",
       "import": "./dist/cache-adapters/index.js"
