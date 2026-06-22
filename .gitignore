@@ -7,3 +7,6 @@ coverage/
 .env
 .env.local
 *.tsbuildinfo
+
+# Template env files are placeholders (no real secrets) and must be committed
+!packages/create-openshop/templates/**/.env
