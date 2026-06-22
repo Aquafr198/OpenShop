@@ -39,6 +39,8 @@ describe("PKCE", () => {
 describe("CustomerAccountAuth", () => {
   it("builds an authorization URL with PKCE params", async () => {
     const auth = new CustomerAccountAuth({
+      storeDomain: "my-shop.myshopify.com",
+      useDiscovery: false,
       shopId: "123",
       clientId: "client-abc",
       redirectUri: "https://app.test/callback",
@@ -71,6 +73,8 @@ describe("CustomerAccountAuth", () => {
       ),
     );
     const auth = new CustomerAccountAuth({
+      storeDomain: "my-shop.myshopify.com",
+      useDiscovery: false,
       shopId: "123",
       clientId: "client-abc",
       redirectUri: "https://app.test/callback",
@@ -87,17 +91,46 @@ describe("CustomerAccountAuth", () => {
     expect(body).toContain("code_verifier=v");
   });
 
-  it("builds a logout url with id_token_hint", () => {
+  it("builds a logout url with id_token_hint", async () => {
     const auth = new CustomerAccountAuth({
+      storeDomain: "my-shop.myshopify.com",
+      useDiscovery: false,
       shopId: "123",
       clientId: "c",
       redirectUri: "https://app.test/callback",
     });
-    const url = new URL(auth.buildLogoutUrl("id-token", "https://app.test"));
+    const url = new URL(await auth.buildLogoutUrl("id-token", "https://app.test"));
     expect(url.searchParams.get("id_token_hint")).toBe("id-token");
     expect(url.searchParams.get("post_logout_redirect_uri")).toBe(
       "https://app.test",
     );
+  });
+
+  it("discovers endpoints from OIDC well-known when useDiscovery is true", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes(".well-known/openid-configuration")) {
+        return new Response(
+          JSON.stringify({
+            authorization_endpoint: "https://accounts.shopify.com/authorize",
+            token_endpoint: "https://accounts.shopify.com/token",
+            end_session_endpoint: "https://accounts.shopify.com/logout",
+          }),
+          { status: 200 },
+        );
+      }
+      return new Response(
+        JSON.stringify({ access_token: "at", refresh_token: "rt", expires_in: 3600, token_type: "Bearer" }),
+        { status: 200 },
+      );
+    });
+    const auth = new CustomerAccountAuth({
+      storeDomain: "my-shop.myshopify.com",
+      clientId: "c",
+      redirectUri: "https://app.test/callback",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    const req = await auth.beginAuthorization();
+    expect(req.url).toContain("accounts.shopify.com/authorize");
   });
 });
 

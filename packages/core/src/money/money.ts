@@ -145,6 +145,9 @@ export interface FormatMoneyOptions {
 /**
  * Format money for display using the platform `Intl` API. Falls back to a
  * simple "CODE amount" string when the currency is not recognized by Intl.
+ *
+ * Uses a bounded internal cache of `Intl.NumberFormat` instances to avoid
+ * re-constructing formatters on every render.
  */
 export function formatMoney(
   money: MoneyV2 | Money,
@@ -155,12 +158,30 @@ export function formatMoney(
   const amount = Number.parseFloat(v2.amount);
 
   try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: v2.currencyCode,
-      ...options.numberFormat,
-    }).format(amount);
+    const formatter = getFormatter(locale, v2.currencyCode, options.numberFormat);
+    return formatter.format(amount);
   } catch {
     return `${v2.currencyCode} ${v2.amount}`;
   }
+}
+
+/** LRU-ish cache of Intl.NumberFormat instances (bounded to 50 entries). */
+const formatterCache = new Map<string, Intl.NumberFormat>();
+const MAX_FORMATTERS = 50;
+
+function getFormatter(
+  locale: string | string[],
+  currency: string,
+  extra?: Intl.NumberFormatOptions,
+): Intl.NumberFormat {
+  const key = `${String(locale)}|${currency}|${JSON.stringify(extra ?? {})}`;
+  let fmt = formatterCache.get(key);
+  if (fmt) return fmt;
+  fmt = new Intl.NumberFormat(locale, { style: "currency", currency, ...extra });
+  if (formatterCache.size >= MAX_FORMATTERS) {
+    const oldest = formatterCache.keys().next().value;
+    if (oldest !== undefined) formatterCache.delete(oldest);
+  }
+  formatterCache.set(key, fmt);
+  return fmt;
 }

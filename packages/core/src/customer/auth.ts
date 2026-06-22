@@ -19,15 +19,28 @@ import {
 } from "./pkce.js";
 
 export interface CustomerAccountAuthConfig {
-  /** The numeric shop id used in Customer Account API URLs. */
-  shopId: string;
+  /**
+   * The store domain (e.g. "my-shop.myshopify.com"). Used for OIDC endpoint
+   * discovery as recommended by Shopify's docs. When `useDiscovery` is true
+   * (the default) the authorize/token/logout URLs are resolved from the shop's
+   * `.well-known/openid-configuration` — which keeps your integration working
+   * as Shopify's infrastructure evolves.
+   */
+  storeDomain: string;
+  /** The numeric shop id (fallback endpoint pattern when discovery is off). */
+  shopId?: string;
   clientId: string;
   redirectUri: string;
   /** OAuth scopes. Defaults to openid + email + customer-account-api access. */
   scopes?: string[];
   /** Confidential clients only. Omit for public (PKCE) clients. */
   clientSecret?: string;
-  /** Override the default Shopify endpoints (useful for testing). */
+  /**
+   * Use OIDC Discovery to resolve endpoints at runtime. Default `true`.
+   * Set to `false` + provide `shopId` to use the legacy hardcoded pattern.
+   */
+  useDiscovery?: boolean;
+  /** Override the Shopify endpoints entirely (useful for testing). */
   endpoints?: Partial<OAuthEndpoints>;
   fetch?: typeof fetch;
 }
@@ -69,6 +82,38 @@ function defaultEndpoints(shopId: string): OAuthEndpoints {
   };
 }
 
+interface OidcConfig {
+  authorization_endpoint: string;
+  token_endpoint: string;
+  end_session_endpoint?: string;
+}
+
+/**
+ * Discover OAuth endpoints via the shop's OIDC configuration, as recommended
+ * by Shopify's official docs:
+ * https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/authenticate-customers
+ */
+async function discoverEndpoints(
+  storeDomain: string,
+  fetchImpl: typeof fetch,
+): Promise<OAuthEndpoints> {
+  const url = `https://${storeDomain}/.well-known/openid-configuration`;
+  const res = await fetchImpl(url);
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch OIDC configuration from ${url}: ${res.status} ${res.statusText}`,
+    );
+  }
+  const config = (await res.json()) as OidcConfig;
+  return {
+    authorize: config.authorization_endpoint,
+    token: config.token_endpoint,
+    logout:
+      config.end_session_endpoint ??
+      `https://shopify.com/authentication/${storeDomain}/logout`,
+  };
+}
+
 interface RawTokenResponse {
   access_token: string;
   refresh_token: string;
@@ -80,15 +125,48 @@ interface RawTokenResponse {
 
 export class CustomerAccountAuth {
   private readonly config: CustomerAccountAuthConfig;
-  private readonly endpoints: OAuthEndpoints;
+  private resolvedEndpoints: OAuthEndpoints | null = null;
   private readonly fetchImpl: typeof fetch;
   private readonly scopes: string[];
 
   constructor(config: CustomerAccountAuthConfig) {
     this.config = config;
-    this.endpoints = { ...defaultEndpoints(config.shopId), ...config.endpoints };
     this.fetchImpl = config.fetch ?? globalThis.fetch;
     this.scopes = config.scopes ?? DEFAULT_SCOPES;
+
+    // If full endpoints are provided, use them immediately (no discovery).
+    if (
+      config.endpoints?.authorize &&
+      config.endpoints.token &&
+      config.endpoints.logout
+    ) {
+      this.resolvedEndpoints = config.endpoints as OAuthEndpoints;
+    }
+  }
+
+  /** Resolve endpoints (discovery or hardcoded fallback). Cached after first call. */
+  private async getEndpoints(): Promise<OAuthEndpoints> {
+    if (this.resolvedEndpoints) return this.resolvedEndpoints;
+
+    const useDiscovery = this.config.useDiscovery !== false;
+    if (useDiscovery) {
+      this.resolvedEndpoints = await discoverEndpoints(
+        this.config.storeDomain,
+        this.fetchImpl,
+      );
+    } else {
+      const shopId = this.config.shopId ?? this.config.storeDomain;
+      this.resolvedEndpoints = defaultEndpoints(shopId);
+    }
+
+    // Apply any partial overrides.
+    if (this.config.endpoints) {
+      this.resolvedEndpoints = {
+        ...this.resolvedEndpoints,
+        ...this.config.endpoints,
+      };
+    }
+    return this.resolvedEndpoints;
   }
 
   /** Build the authorization redirect plus the PKCE state to persist. */
@@ -110,7 +188,7 @@ export class CustomerAccountAuth {
     });
 
     return {
-      url: `${this.endpoints.authorize}?${params.toString()}`,
+      url: `${(await this.getEndpoints()).authorize}?${params.toString()}`,
       verifier,
       state,
       nonce,
@@ -143,12 +221,13 @@ export class CustomerAccountAuth {
   }
 
   /** Build the logout URL; redirect the buyer here to end their session. */
-  buildLogoutUrl(idToken: string, postLogoutRedirectUri?: string): string {
+  async buildLogoutUrl(idToken: string, postLogoutRedirectUri?: string): Promise<string> {
+    const endpoints = await this.getEndpoints();
     const params = new URLSearchParams({ id_token_hint: idToken });
     if (postLogoutRedirectUri) {
       params.set("post_logout_redirect_uri", postLogoutRedirectUri);
     }
-    return `${this.endpoints.logout}?${params.toString()}`;
+    return `${endpoints.logout}?${params.toString()}`;
   }
 
   private async tokenRequest(body: URLSearchParams): Promise<TokenSet> {
@@ -162,7 +241,7 @@ export class CustomerAccountAuth {
       headers.Authorization = `Basic ${creds}`;
     }
 
-    const response = await this.fetchImpl(this.endpoints.token, {
+    const response = await this.fetchImpl((await this.getEndpoints()).token, {
       method: "POST",
       headers,
       body: body.toString(),

@@ -23,4 +23,6 @@ export * from "./security/index.js";
 export * from "./seo/index.js";
 export * from "./server/index.js";
 export * from "./shop-pay/index.js";
+export * from "./pagination/index.js";
+export * from "./rich-text/index.js";
 export * from "./analytics/index.js";

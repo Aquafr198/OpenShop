@@ -62,12 +62,18 @@ export interface CartLineInput {
   merchandiseId: string;
   quantity?: number;
   attributes?: { key: string; value: string }[];
+  /** For subscription products — the selling plan id. */
+  sellingPlanId?: string;
 }
 
 export interface CartLineUpdateInput {
   id: string;
   quantity?: number;
   attributes?: { key: string; value: string }[];
+  /** Change the selling plan on an existing line. */
+  sellingPlanId?: string;
+  /** Swap the merchandise (variant) on an existing line. */
+  merchandiseId?: string;
 }
 
 /**

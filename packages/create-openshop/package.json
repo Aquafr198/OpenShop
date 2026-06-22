@@ -1,0 +1,27 @@
+{
+  "name": "create-openshop",
+  "version": "0.2.0",
+  "description": "Scaffold an OpenShop headless storefront in seconds.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-openshop": "./bin/create-openshop.mjs"
+  },
+  "files": [
+    "bin",
+    "templates"
+  ],
+  "keywords": [
+    "shopify",
+    "headless",
+    "commerce",
+    "storefront",
+    "scaffold"
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}
