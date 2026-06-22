@@ -1,5 +1,13 @@
 # @openshop/core
 
+## 0.3.1
+
+### Patch Changes
+
+- 8ca7020: Security: `externalVideoEmbedUrl` now only returns `http(s)` URLs, preventing a
+  crafted media node from injecting a `javascript:`/`data:` URL into an
+  `<ExternalVideo>` iframe `src`.
+
 ## 0.3.0
 
 ### Minor Changes
