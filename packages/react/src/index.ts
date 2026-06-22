@@ -16,8 +16,28 @@ export {
   useCartIsUpdating,
   type CartProviderProps,
 } from "./cart.js";
+export {
+  AddToCartButton,
+  QuantityAdjuster,
+  CartTotal,
+  CheckoutButton,
+  type AddToCartButtonProps,
+  type QuantityAdjusterProps,
+  type CartTotalProps,
+  type CheckoutButtonProps,
+} from "./cart-ui.js";
 export { Money, useMoney, type MoneyProps } from "./money.js";
 export { Image, type ImageProps } from "./image.js";
+export {
+  MediaFile,
+  Video,
+  ExternalVideo,
+  ModelViewer,
+  type MediaFileProps,
+  type VideoProps,
+  type ExternalVideoProps,
+  type ModelViewerProps,
+} from "./media.js";
 export {
   NonceProvider,
   useNonce,

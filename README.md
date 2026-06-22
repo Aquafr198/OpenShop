@@ -210,7 +210,7 @@ A plain HTML form posts to `/cart` and works with JS disabled; with JS it sends
 import { CustomerAccountAuth, CustomerAccountClient } from "@openshop/core";
 
 const auth = new CustomerAccountAuth({
-  shopId: "1234567",
+  storeDomain: "your-shop.myshopify.com", // OIDC endpoints discovered automatically
   clientId: process.env.CUSTOMER_ACCOUNT_CLIENT_ID!,
   redirectUri: "https://app.example.com/account/callback",
 });
@@ -339,6 +339,46 @@ response.headers.set("Content-Security-Policy", csp.header);
 // <NonceProvider nonce={csp.nonce}> … </NonceProvider>
 ```
 
+### Metafields, media, large catalogs & Shopify analytics
+
+```ts
+import { parseMetafield } from "@openshop/core/metafields";
+import { getProductOptions, decodeEncodedVariant } from "@openshop/core/catalog";
+import { connectShopifyAnalytics } from "@openshop/core/analytics-shopify";
+
+// Typed metafields (dimensions, ratings, references, lists, money, dates…):
+parseMetafield({ type: "dimension", value: '{"value":12.5,"unit":"cm"}' }); // { value: 12.5, unit: "cm" }
+
+// Product options that scale to 2000+ variants & combined listings via the
+// Storefront API's encoded variant data (no need to fetch every variant):
+const options = getProductOptions(product, { Color: "Red" });
+// → per value: { name, selected, exists, available, isDifferentProduct, handle?, variantUriQuery }
+
+// Send standard events to Shopify (Admin analytics) — consent-gated, best-effort:
+connectShopifyAnalytics({
+  analytics,                                  // the consent-aware Analytics instance
+  context: () => ({ shopId, currency: "USD", hasUserConsent, uniqueToken, visitToken }),
+});
+```
+
+Product media (image, video, external video, 3D) in React:
+
+```tsx
+import { MediaFile } from "@openshop/react";
+{product.media.nodes.map((m) => <MediaFile key={m.id} media={m} />)}
+```
+
+Cart building blocks in React:
+
+```tsx
+import { AddToCartButton, QuantityAdjuster, CartTotal, CheckoutButton } from "@openshop/react";
+
+<AddToCartButton merchandiseId={variant.id} quantity={1} />
+<QuantityAdjuster lineId={line.id} quantity={line.quantity} />
+<CartTotal />
+<CheckoutButton />
+```
+
 ## Architecture
 
 ```
@@ -382,12 +422,17 @@ This is an early foundation. Implemented and tested today:
 - [x] React bindings (`useCart`, `useVariantSelection`, `usePredictiveSearch`, `useLocale`, `<Money/>`, analytics)
 - [x] **Vue 3 bindings** (same core, proving framework-agnosticism)
 - [x] **Svelte bindings** (Svelte stores over the same core)
+- [x] **Metafield parsing** (all types + lists + references)
+- [x] **Shopify analytics** (Monorail wire-format, tracking values, consent-gated)
+- [x] **Variant encoding & combined listings** (`decodeEncodedVariant`, `getProductOptions`, 2000+ variants)
+- [x] **Media primitives** (`<MediaFile>` / video / external video / 3D model)
+- [x] **Cart UI components** (`<AddToCartButton>`, `<QuantityAdjuster>`, `<CartTotal>`, `<CheckoutButton>`)
 - [x] Example storefront (Node, zero-config, all modules wired + integration tests)
 
 Planned next:
 
+- [ ] Cart-UI parity for Vue & Svelte bindings
 - [ ] A Next.js / React Router example against a real shop
-- [ ] CI workflow + npm publishing setup
 
 ## Try the example storefront
 

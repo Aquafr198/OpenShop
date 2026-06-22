@@ -1,6 +1,6 @@
 {
   "name": "@openshop/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Framework-agnostic headless commerce core for OpenShop.",
   "license": "MIT",
   "type": "module",
@@ -49,6 +49,10 @@
       "types": "./dist/image/index.d.ts",
       "import": "./dist/image/index.js"
     },
+    "./media": {
+      "types": "./dist/media/index.d.ts",
+      "import": "./dist/media/index.js"
+    },
     "./search": {
       "types": "./dist/search/index.d.ts",
       "import": "./dist/search/index.js"
@@ -81,9 +85,17 @@
       "types": "./dist/money/index.d.ts",
       "import": "./dist/money/index.js"
     },
+    "./metafields": {
+      "types": "./dist/metafields/index.d.ts",
+      "import": "./dist/metafields/index.js"
+    },
     "./analytics": {
       "types": "./dist/analytics/index.d.ts",
       "import": "./dist/analytics/index.js"
+    },
+    "./analytics-shopify": {
+      "types": "./dist/analytics-shopify/index.d.ts",
+      "import": "./dist/analytics-shopify/index.js"
     }
   },
   "scripts": {

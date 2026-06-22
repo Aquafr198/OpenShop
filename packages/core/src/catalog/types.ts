@@ -50,6 +50,10 @@ export interface Product {
   options: ProductOption[];
   variants: ProductVariant[];
   priceRange?: ProductPriceRange;
+  /** Encoded set of existing option-value combinations (large catalogs). */
+  encodedVariantExistence?: string | null;
+  /** Encoded set of available-for-sale option-value combinations. */
+  encodedVariantAvailability?: string | null;
 }
 
 export interface Collection {
