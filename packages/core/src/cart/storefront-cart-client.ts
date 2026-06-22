@@ -23,6 +23,7 @@ import type {
   CartDeliveryAddressUpdateInput,
   CartLineInput,
   CartLineUpdateInput,
+  CartSelectedDeliveryOptionInput,
 } from "./types.js";
 
 /** Thrown when the Cart API returns `userErrors` (e.g. variant unavailable). */
@@ -188,6 +189,17 @@ export class StorefrontCartClient implements CartClient {
       { variables: { cartId, addressIds } },
     );
     return this.unwrap(data.cartDeliveryAddressesRemove);
+  }
+
+  async updateSelectedDeliveryOptions(
+    cartId: string,
+    selectedDeliveryOptions: CartSelectedDeliveryOptionInput[],
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartSelectedDeliveryOptionsUpdate,
+      { variables: { cartId, selectedDeliveryOptions } },
+    );
+    return this.unwrap(data.cartSelectedDeliveryOptionsUpdate);
   }
 
   async get(cartId: string): Promise<Cart | null> {

@@ -16,6 +16,7 @@ import type {
   CartLine,
   CartLineInput,
   CartLineUpdateInput,
+  CartSelectedDeliveryOptionInput,
 } from "./types.js";
 
 /** Raw Storefront cart shape (subset we query). */
@@ -64,7 +65,24 @@ export interface RawCart {
       } | null;
     }[];
   } | null;
+  deliveryGroups?: {
+    nodes: {
+      id: string;
+      groupType: string;
+      selectedDeliveryOption?: RawDeliveryOption | null;
+      deliveryOptions: RawDeliveryOption[];
+    }[];
+  };
   lines: { nodes: RawCartLine[] };
+}
+
+interface RawDeliveryOption {
+  handle: string;
+  title?: string | null;
+  code?: string | null;
+  deliveryMethodType: string;
+  description?: string | null;
+  estimatedCost: MoneyV2;
 }
 
 interface RawCartLine {
@@ -168,6 +186,12 @@ export function mapCart(raw: RawCart): Cart {
         zip: node.address?.zip ?? null,
       },
     })),
+    deliveryGroups: (raw.deliveryGroups?.nodes ?? []).map((group) => ({
+      id: group.id,
+      groupType: group.groupType,
+      selectedDeliveryOption: group.selectedDeliveryOption ?? null,
+      deliveryOptions: group.deliveryOptions ?? [],
+    })),
     lines,
   };
 }
@@ -223,6 +247,28 @@ export function cartFragment(linesFirst: number): string {
               provinceCode
               zip
             }
+          }
+        }
+      }
+      deliveryGroups(first: 10) {
+        nodes {
+          id
+          groupType
+          selectedDeliveryOption {
+            handle
+            title
+            code
+            deliveryMethodType
+            description
+            estimatedCost { amount currencyCode }
+          }
+          deliveryOptions {
+            handle
+            title
+            code
+            deliveryMethodType
+            description
+            estimatedCost { amount currencyCode }
           }
         }
       }
@@ -508,6 +554,34 @@ export function buildCartDocuments(linesFirst: number) {
     }
   `;
 
+  const cartSelectedDeliveryOptionsUpdate = gql<
+    { cartSelectedDeliveryOptionsUpdate: CartMutationPayload },
+    {
+      cartId: string;
+      selectedDeliveryOptions: CartSelectedDeliveryOptionInput[];
+    }
+  >`
+    ${fragment}
+    mutation CartSelectedDeliveryOptionsUpdate(
+      $cartId: ID!
+      $selectedDeliveryOptions: [CartSelectedDeliveryOptionInput!]!
+    ) {
+      cartSelectedDeliveryOptionsUpdate(
+        cartId: $cartId
+        selectedDeliveryOptions: $selectedDeliveryOptions
+      ) {
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
+      }
+    }
+  `;
+
   return {
     cartQuery,
     cartCreate,
@@ -522,5 +596,6 @@ export function buildCartDocuments(linesFirst: number) {
     cartDeliveryAddressesAdd,
     cartDeliveryAddressesUpdate,
     cartDeliveryAddressesRemove,
+    cartSelectedDeliveryOptionsUpdate,
   } satisfies Record<string, TypedDocument<unknown, Vars>>;
 }

@@ -69,6 +69,7 @@ function mockClient(): CartClient {
     addDeliveryAddresses: vi.fn(async () => makeCart()),
     updateDeliveryAddresses: vi.fn(async () => makeCart()),
     removeDeliveryAddresses: vi.fn(async () => makeCart()),
+    updateSelectedDeliveryOptions: vi.fn(async () => makeCart()),
     get: vi.fn(async () => makeCart()),
   };
 }
@@ -239,6 +240,21 @@ describe("createCartStore", () => {
     expect(client.removeDeliveryAddresses).toHaveBeenCalledWith(
       "gid://shopify/Cart/1",
       ["a1"],
+    );
+  });
+
+  it("sets selected delivery options via the client", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+    await store.setSelectedDeliveryOptions([
+      { deliveryGroupId: "g1", deliveryOptionHandle: "standard" },
+    ]);
+    expect(client.updateSelectedDeliveryOptions).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      [{ deliveryGroupId: "g1", deliveryOptionHandle: "standard" }],
     );
   });
 

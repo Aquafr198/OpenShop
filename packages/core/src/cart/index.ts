@@ -28,4 +28,7 @@ export type {
   CartDeliveryAddressFields,
   CartDeliveryAddressInput,
   CartDeliveryAddressUpdateInput,
+  CartDeliveryOption,
+  CartDeliveryGroup,
+  CartSelectedDeliveryOptionInput,
 } from "./types.js";

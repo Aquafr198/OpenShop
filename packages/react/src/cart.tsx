@@ -67,6 +67,7 @@ export function useCartActions() {
       addDeliveryAddresses: store.addDeliveryAddresses.bind(store),
       updateDeliveryAddresses: store.updateDeliveryAddresses.bind(store),
       removeDeliveryAddresses: store.removeDeliveryAddresses.bind(store),
+      setSelectedDeliveryOptions: store.setSelectedDeliveryOptions.bind(store),
       refresh: store.refresh.bind(store),
     }),
     [store],

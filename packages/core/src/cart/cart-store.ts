@@ -20,6 +20,7 @@ import type {
   CartDeliveryAddressUpdateInput,
   CartLineInput,
   CartLineUpdateInput,
+  CartSelectedDeliveryOptionInput,
   CartState,
 } from "./types.js";
 
@@ -74,6 +75,10 @@ export interface CartStore extends ReadableStore<CartState> {
   ): Promise<void>;
   /** Remove cart delivery addresses by id. */
   removeDeliveryAddresses(addressIds: string[]): Promise<void>;
+  /** Choose a delivery option per delivery group (shipping method). */
+  setSelectedDeliveryOptions(
+    selectedDeliveryOptions: CartSelectedDeliveryOptionInput[],
+  ): Promise<void>;
   /** Re-fetch the authoritative cart from the server. */
   refresh(): Promise<void>;
 }
@@ -285,6 +290,15 @@ export function createCartStore(options: CartStoreOptions): CartStore {
       );
     },
 
+    setSelectedDeliveryOptions(selectedDeliveryOptions) {
+      const op = requireClientMethod(client, "updateSelectedDeliveryOptions");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, selectedDeliveryOptions),
+        () => client.create([]),
+      );
+    },
+
     async refresh() {
       const cart = store.get().cart;
       if (!cart) return;
@@ -307,7 +321,8 @@ type OptionalCartClientMethod =
   | "updateNote"
   | "addDeliveryAddresses"
   | "updateDeliveryAddresses"
-  | "removeDeliveryAddresses";
+  | "removeDeliveryAddresses"
+  | "updateSelectedDeliveryOptions";
 
 /**
  * Resolve an optional `CartClient` method, throwing a clear error if the

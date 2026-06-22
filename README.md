@@ -502,7 +502,7 @@ This is an early foundation. Implemented and tested today:
 - [x] Exact money arithmetic & `Intl` formatting
 - [x] Optimistic, serialized cart store
 - [x] **Real `StorefrontCartClient`** (Cart API mutations + userError handling)
-- [x] **Full cart surface** (buyer identity, gift cards, attributes, note, B2B/multi delivery addresses — market pricing / B2B foundation)
+- [x] **Full cart surface** (buyer identity, gift cards, attributes, note, B2B/multi delivery addresses, selected delivery options — market pricing / B2B foundation)
 - [x] **Storefront utilities** (`parseGid`, `composeGid`, `flattenConnection`)
 - [x] **Product pricing** (`getPriceDiscount`, React `<ProductPrice>` with compare-at + badge)
 - [x] **Catalog client** (products, collections with pagination, recommendations)

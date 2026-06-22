@@ -21,6 +21,7 @@ export interface CartStores {
     addDeliveryAddresses: CartStore["addDeliveryAddresses"];
     updateDeliveryAddresses: CartStore["updateDeliveryAddresses"];
     removeDeliveryAddresses: CartStore["removeDeliveryAddresses"];
+    setSelectedDeliveryOptions: CartStore["setSelectedDeliveryOptions"];
     refresh: CartStore["refresh"];
   };
 }
@@ -57,6 +58,7 @@ export function createCartStores(cart: CartStore): CartStores {
       addDeliveryAddresses: cart.addDeliveryAddresses.bind(cart),
       updateDeliveryAddresses: cart.updateDeliveryAddresses.bind(cart),
       removeDeliveryAddresses: cart.removeDeliveryAddresses.bind(cart),
+      setSelectedDeliveryOptions: cart.setSelectedDeliveryOptions.bind(cart),
       refresh: cart.refresh.bind(cart),
     },
   };

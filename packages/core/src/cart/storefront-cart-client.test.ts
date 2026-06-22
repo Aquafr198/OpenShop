@@ -293,4 +293,77 @@ describe("StorefrontCartClient", () => {
     expect(cart?.deliveryAddresses?.[0]!.address.city).toBe("Paris");
     expect(cart?.deliveryAddresses?.[0]!.address.address2).toBeNull();
   });
+
+  it("updates the selected delivery options with the right variables", async () => {
+    const { client, fetchMock } = makeClient({
+      cartSelectedDeliveryOptionsUpdate: {
+        cartSelectedDeliveryOptionsUpdate: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.updateSelectedDeliveryOptions("gid://shopify/Cart/1", [
+      {
+        deliveryGroupId: "gid://shopify/CartDeliveryGroup/1",
+        deliveryOptionHandle: "standard",
+      },
+    ]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.selectedDeliveryOptions).toEqual([
+      {
+        deliveryGroupId: "gid://shopify/CartDeliveryGroup/1",
+        deliveryOptionHandle: "standard",
+      },
+    ]);
+  });
+
+  it("maps delivery groups and their options", async () => {
+    const { client } = makeClient({
+      GetCart: {
+        cart: rawCart({
+          deliveryGroups: {
+            nodes: [
+              {
+                id: "gid://shopify/CartDeliveryGroup/1",
+                groupType: "ONE_TIME_PURCHASE",
+                selectedDeliveryOption: {
+                  handle: "standard",
+                  title: "Standard",
+                  code: "STD",
+                  deliveryMethodType: "SHIPPING",
+                  description: null,
+                  estimatedCost: { amount: "5.00", currencyCode: "USD" },
+                },
+                deliveryOptions: [
+                  {
+                    handle: "standard",
+                    title: "Standard",
+                    code: "STD",
+                    deliveryMethodType: "SHIPPING",
+                    description: null,
+                    estimatedCost: { amount: "5.00", currencyCode: "USD" },
+                  },
+                  {
+                    handle: "express",
+                    title: "Express",
+                    code: "EXP",
+                    deliveryMethodType: "SHIPPING",
+                    description: "Next day",
+                    estimatedCost: { amount: "15.00", currencyCode: "USD" },
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      },
+    });
+    const cart = await client.get("gid://shopify/Cart/1");
+    expect(cart?.deliveryGroups).toHaveLength(1);
+    expect(cart?.deliveryGroups?.[0]!.deliveryOptions).toHaveLength(2);
+    expect(cart?.deliveryGroups?.[0]!.selectedDeliveryOption?.handle).toBe(
+      "standard",
+    );
+    expect(
+      cart?.deliveryGroups?.[0]!.deliveryOptions[1]!.estimatedCost.amount,
+    ).toBe("15.00");
+  });
 });

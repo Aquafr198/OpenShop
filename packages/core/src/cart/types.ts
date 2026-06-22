@@ -76,6 +76,31 @@ export interface CartDeliveryAddress {
   address: CartDeliveryAddressFields;
 }
 
+/** A shipping/delivery choice for a delivery group. */
+export interface CartDeliveryOption {
+  /** Unique identifier of the option (used to select it). */
+  handle: string;
+  title?: string | null;
+  code?: string | null;
+  /** e.g. "SHIPPING", "PICK_UP", "LOCAL". */
+  deliveryMethodType: string;
+  description?: string | null;
+  estimatedCost: MoneyV2;
+}
+
+/**
+ * A group of cart lines shipping to the same destination, with the delivery
+ * options available for it. Empty unless the cart is associated with a
+ * logged-in customer (via `buyerIdentity.customerAccessToken`).
+ */
+export interface CartDeliveryGroup {
+  id: string;
+  /** e.g. "ONE_TIME_PURCHASE" or "SUBSCRIPTION". */
+  groupType: string;
+  deliveryOptions: CartDeliveryOption[];
+  selectedDeliveryOption?: CartDeliveryOption | null;
+}
+
 export interface Cart {
   id: string;
   checkoutUrl: string;
@@ -88,6 +113,7 @@ export interface Cart {
   buyerIdentity?: CartBuyerIdentity | null;
   appliedGiftCards?: AppliedGiftCard[];
   deliveryAddresses?: CartDeliveryAddress[];
+  deliveryGroups?: CartDeliveryGroup[];
 }
 
 /**
@@ -150,6 +176,12 @@ export interface CartDeliveryAddressUpdateInput extends CartDeliveryAddressField
   oneTimeUse?: boolean;
 }
 
+/** Select a delivery option for a given delivery group. */
+export interface CartSelectedDeliveryOptionInput {
+  deliveryGroupId: string;
+  deliveryOptionHandle: string;
+}
+
 /**
  * The transport that performs real cart mutations against the Storefront API.
  * Kept as an interface so the cart store stays runtime-agnostic: a server
@@ -181,5 +213,9 @@ export interface CartClient {
     addresses: CartDeliveryAddressUpdateInput[],
   ): Promise<Cart>;
   removeDeliveryAddresses?(cartId: string, addressIds: string[]): Promise<Cart>;
+  updateSelectedDeliveryOptions?(
+    cartId: string,
+    selectedDeliveryOptions: CartSelectedDeliveryOptionInput[],
+  ): Promise<Cart>;
   get(cartId: string): Promise<Cart | null>;
 }
