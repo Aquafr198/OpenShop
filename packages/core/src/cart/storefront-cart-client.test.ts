@@ -211,4 +211,86 @@ describe("StorefrontCartClient", () => {
       { key: "gift_wrap", value: "yes" },
     ]);
   });
+
+  it("adds delivery addresses with the nested input shape", async () => {
+    const { client, fetchMock } = makeClient({
+      cartDeliveryAddressesAdd: {
+        cartDeliveryAddressesAdd: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.addDeliveryAddresses("gid://shopify/Cart/1", [
+      { address1: "1 Rue", city: "Paris", countryCode: "FR", selected: true },
+    ]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.addresses).toEqual([
+      {
+        address: {
+          deliveryAddress: {
+            address1: "1 Rue",
+            city: "Paris",
+            countryCode: "FR",
+          },
+        },
+        selected: true,
+      },
+    ]);
+  });
+
+  it("updates delivery addresses keeping id outside the address input", async () => {
+    const { client, fetchMock } = makeClient({
+      cartDeliveryAddressesUpdate: {
+        cartDeliveryAddressesUpdate: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.updateDeliveryAddresses("gid://shopify/Cart/1", [
+      { id: "gid://shopify/CartSelectableAddress/1", city: "Lyon" },
+    ]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.addresses).toEqual([
+      {
+        id: "gid://shopify/CartSelectableAddress/1",
+        address: { deliveryAddress: { city: "Lyon" } },
+      },
+    ]);
+  });
+
+  it("removes delivery addresses by id", async () => {
+    const { client, fetchMock } = makeClient({
+      cartDeliveryAddressesRemove: {
+        cartDeliveryAddressesRemove: { cart: rawCart(), userErrors: [] },
+      },
+    });
+    await client.removeDeliveryAddresses("gid://shopify/Cart/1", ["a1", "a2"]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(body.variables.addressIds).toEqual(["a1", "a2"]);
+  });
+
+  it("maps delivery addresses from the cart", async () => {
+    const { client } = makeClient({
+      GetCart: {
+        cart: rawCart({
+          delivery: {
+            addresses: [
+              {
+                id: "gid://shopify/CartSelectableAddress/1",
+                selected: true,
+                oneTimeUse: false,
+                address: {
+                  __typename: "CartDeliveryAddress",
+                  address1: "1 Rue",
+                  city: "Paris",
+                  countryCode: "FR",
+                },
+              },
+            ],
+          },
+        }),
+      },
+    });
+    const cart = await client.get("gid://shopify/Cart/1");
+    expect(cart?.deliveryAddresses).toHaveLength(1);
+    expect(cart?.deliveryAddresses?.[0]!.selected).toBe(true);
+    expect(cart?.deliveryAddresses?.[0]!.address.city).toBe("Paris");
+    expect(cart?.deliveryAddresses?.[0]!.address.address2).toBeNull();
+  });
 });

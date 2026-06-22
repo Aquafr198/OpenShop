@@ -16,6 +16,8 @@ import type {
   Cart,
   CartBuyerIdentityInput,
   CartClient,
+  CartDeliveryAddressInput,
+  CartDeliveryAddressUpdateInput,
   CartLineInput,
   CartLineUpdateInput,
   CartState,
@@ -64,6 +66,14 @@ export interface CartStore extends ReadableStore<CartState> {
   setAttributes(attributes: { key: string; value: string }[]): Promise<void>;
   /** Set the cart note. */
   setNote(note: string): Promise<void>;
+  /** B2B / multi-address: add delivery addresses to the cart. */
+  addDeliveryAddresses(addresses: CartDeliveryAddressInput[]): Promise<void>;
+  /** Update existing cart delivery addresses (by id). */
+  updateDeliveryAddresses(
+    addresses: CartDeliveryAddressUpdateInput[],
+  ): Promise<void>;
+  /** Remove cart delivery addresses by id. */
+  removeDeliveryAddresses(addressIds: string[]): Promise<void>;
   /** Re-fetch the authoritative cart from the server. */
   refresh(): Promise<void>;
 }
@@ -248,6 +258,33 @@ export function createCartStore(options: CartStoreOptions): CartStore {
       );
     },
 
+    addDeliveryAddresses(addresses) {
+      const op = requireClientMethod(client, "addDeliveryAddresses");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, addresses),
+        () => client.create([]),
+      );
+    },
+
+    updateDeliveryAddresses(addresses) {
+      const op = requireClientMethod(client, "updateDeliveryAddresses");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, addresses),
+        () => client.create([]),
+      );
+    },
+
+    removeDeliveryAddresses(addressIds) {
+      const op = requireClientMethod(client, "removeDeliveryAddresses");
+      return mutate(
+        undefined,
+        (cartId) => op(cartId, addressIds),
+        () => client.create([]),
+      );
+    },
+
     async refresh() {
       const cart = store.get().cart;
       if (!cart) return;
@@ -267,7 +304,10 @@ type OptionalCartClientMethod =
   | "updateGiftCardCodes"
   | "updateBuyerIdentity"
   | "updateAttributes"
-  | "updateNote";
+  | "updateNote"
+  | "addDeliveryAddresses"
+  | "updateDeliveryAddresses"
+  | "removeDeliveryAddresses";
 
 /**
  * Resolve an optional `CartClient` method, throwing a clear error if the

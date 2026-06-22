@@ -18,6 +18,9 @@ import type {
   Cart,
   CartBuyerIdentityInput,
   CartClient,
+  CartDeliveryAddressFields,
+  CartDeliveryAddressInput,
+  CartDeliveryAddressUpdateInput,
   CartLineInput,
   CartLineUpdateInput,
 } from "./types.js";
@@ -133,6 +136,60 @@ export class StorefrontCartClient implements CartClient {
     return this.unwrap(data.cartAttributesUpdate);
   }
 
+  async addDeliveryAddresses(
+    cartId: string,
+    addresses: CartDeliveryAddressInput[],
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartDeliveryAddressesAdd,
+      {
+        variables: {
+          cartId,
+          addresses: addresses.map((a) => ({
+            address: { deliveryAddress: addressFields(a) },
+            ...(a.selected !== undefined ? { selected: a.selected } : {}),
+            ...(a.oneTimeUse !== undefined ? { oneTimeUse: a.oneTimeUse } : {}),
+          })),
+        },
+      },
+    );
+    return this.unwrap(data.cartDeliveryAddressesAdd);
+  }
+
+  async updateDeliveryAddresses(
+    cartId: string,
+    addresses: CartDeliveryAddressUpdateInput[],
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartDeliveryAddressesUpdate,
+      {
+        variables: {
+          cartId,
+          addresses: addresses.map(
+            ({ id, selected, oneTimeUse, ...fields }) => ({
+              id,
+              address: { deliveryAddress: addressFields(fields) },
+              ...(selected !== undefined ? { selected } : {}),
+              ...(oneTimeUse !== undefined ? { oneTimeUse } : {}),
+            }),
+          ),
+        },
+      },
+    );
+    return this.unwrap(data.cartDeliveryAddressesUpdate);
+  }
+
+  async removeDeliveryAddresses(
+    cartId: string,
+    addressIds: string[],
+  ): Promise<Cart> {
+    const data = await this.storefront.mutate(
+      this.docs.cartDeliveryAddressesRemove,
+      { variables: { cartId, addressIds } },
+    );
+    return this.unwrap(data.cartDeliveryAddressesRemove);
+  }
+
   async get(cartId: string): Promise<Cart | null> {
     const data = await this.storefront.query(this.docs.cartQuery, {
       variables: { id: cartId },
@@ -140,4 +197,29 @@ export class StorefrontCartClient implements CartClient {
     });
     return data.cart ? mapCart(data.cart) : null;
   }
+}
+
+const ADDRESS_KEYS = [
+  "address1",
+  "address2",
+  "city",
+  "company",
+  "countryCode",
+  "firstName",
+  "lastName",
+  "phone",
+  "provinceCode",
+  "zip",
+] as const;
+
+/** Pick only the delivery-address fields, dropping `undefined` values. */
+function addressFields(
+  input: CartDeliveryAddressFields,
+): CartDeliveryAddressFields {
+  const out: Record<string, unknown> = {};
+  for (const key of ADDRESS_KEYS) {
+    const value = input[key];
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
 }

@@ -44,6 +44,9 @@ export function useCartActions() {
     setBuyerIdentity: store.setBuyerIdentity.bind(store),
     setAttributes: store.setAttributes.bind(store),
     setNote: store.setNote.bind(store),
+    addDeliveryAddresses: store.addDeliveryAddresses.bind(store),
+    updateDeliveryAddresses: store.updateDeliveryAddresses.bind(store),
+    removeDeliveryAddresses: store.removeDeliveryAddresses.bind(store),
     refresh: store.refresh.bind(store),
   };
 }

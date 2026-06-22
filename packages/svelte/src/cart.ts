@@ -18,6 +18,9 @@ export interface CartStores {
     setBuyerIdentity: CartStore["setBuyerIdentity"];
     setAttributes: CartStore["setAttributes"];
     setNote: CartStore["setNote"];
+    addDeliveryAddresses: CartStore["addDeliveryAddresses"];
+    updateDeliveryAddresses: CartStore["updateDeliveryAddresses"];
+    removeDeliveryAddresses: CartStore["removeDeliveryAddresses"];
     refresh: CartStore["refresh"];
   };
 }
@@ -51,6 +54,9 @@ export function createCartStores(cart: CartStore): CartStores {
       setBuyerIdentity: cart.setBuyerIdentity.bind(cart),
       setAttributes: cart.setAttributes.bind(cart),
       setNote: cart.setNote.bind(cart),
+      addDeliveryAddresses: cart.addDeliveryAddresses.bind(cart),
+      updateDeliveryAddresses: cart.updateDeliveryAddresses.bind(cart),
+      removeDeliveryAddresses: cart.removeDeliveryAddresses.bind(cart),
       refresh: cart.refresh.bind(cart),
     },
   };

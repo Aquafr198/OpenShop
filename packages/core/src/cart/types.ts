@@ -50,6 +50,32 @@ export interface CartBuyerIdentity {
   customer?: { id: string } | null;
 }
 
+/** The address fields of a cart delivery address. */
+export interface CartDeliveryAddressFields {
+  address1?: string | null;
+  address2?: string | null;
+  city?: string | null;
+  company?: string | null;
+  /** ISO country code (e.g. "US"). */
+  countryCode?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  /** E.164 formatted, e.g. "+16135551111". */
+  phone?: string | null;
+  provinceCode?: string | null;
+  zip?: string | null;
+}
+
+/** A selectable delivery address stored on the cart (B2B / multi-address). */
+export interface CartDeliveryAddress {
+  id: string;
+  /** Whether this address is pre-selected for checkout. */
+  selected: boolean;
+  /** When true, the address is not saved to the customer after checkout. */
+  oneTimeUse: boolean;
+  address: CartDeliveryAddressFields;
+}
+
 export interface Cart {
   id: string;
   checkoutUrl: string;
@@ -61,6 +87,7 @@ export interface Cart {
   note?: string | null;
   buyerIdentity?: CartBuyerIdentity | null;
   appliedGiftCards?: AppliedGiftCard[];
+  deliveryAddresses?: CartDeliveryAddress[];
 }
 
 /**
@@ -107,6 +134,22 @@ export interface CartLineUpdateInput {
   merchandiseId?: string;
 }
 
+/** Friendly input for adding a delivery address to the cart. */
+export interface CartDeliveryAddressInput extends CartDeliveryAddressFields {
+  /** Pre-select this address for checkout. */
+  selected?: boolean;
+  /** Don't save this address to the customer after checkout. */
+  oneTimeUse?: boolean;
+}
+
+/** Friendly input for updating an existing cart delivery address. */
+export interface CartDeliveryAddressUpdateInput extends CartDeliveryAddressFields {
+  /** The id of the address to update. */
+  id: string;
+  selected?: boolean;
+  oneTimeUse?: boolean;
+}
+
 /**
  * The transport that performs real cart mutations against the Storefront API.
  * Kept as an interface so the cart store stays runtime-agnostic: a server
@@ -129,5 +172,14 @@ export interface CartClient {
     attributes: { key: string; value: string }[],
   ): Promise<Cart>;
   updateNote?(cartId: string, note: string): Promise<Cart>;
+  addDeliveryAddresses?(
+    cartId: string,
+    addresses: CartDeliveryAddressInput[],
+  ): Promise<Cart>;
+  updateDeliveryAddresses?(
+    cartId: string,
+    addresses: CartDeliveryAddressUpdateInput[],
+  ): Promise<Cart>;
+  removeDeliveryAddresses?(cartId: string, addressIds: string[]): Promise<Cart>;
   get(cartId: string): Promise<Cart | null>;
 }

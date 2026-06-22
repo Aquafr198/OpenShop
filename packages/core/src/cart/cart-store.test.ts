@@ -66,6 +66,9 @@ function mockClient(): CartClient {
       makeCart({ attributes }),
     ),
     updateNote: vi.fn(async (_id, note) => makeCart({ note })),
+    addDeliveryAddresses: vi.fn(async () => makeCart()),
+    updateDeliveryAddresses: vi.fn(async () => makeCart()),
+    removeDeliveryAddresses: vi.fn(async () => makeCart()),
     get: vi.fn(async () => makeCart()),
   };
 }
@@ -213,6 +216,29 @@ describe("createCartStore", () => {
     expect(client.updateGiftCardCodes).toHaveBeenCalledWith(
       "gid://shopify/Cart/1",
       ["GIFT-1"],
+    );
+  });
+
+  it("manages delivery addresses via the client", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+    await store.addDeliveryAddresses([{ city: "Paris", countryCode: "FR" }]);
+    expect(client.addDeliveryAddresses).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      [{ city: "Paris", countryCode: "FR" }],
+    );
+    await store.updateDeliveryAddresses([{ id: "a1", city: "Lyon" }]);
+    expect(client.updateDeliveryAddresses).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      [{ id: "a1", city: "Lyon" }],
+    );
+    await store.removeDeliveryAddresses(["a1"]);
+    expect(client.removeDeliveryAddresses).toHaveBeenCalledWith(
+      "gid://shopify/Cart/1",
+      ["a1"],
     );
   });
 

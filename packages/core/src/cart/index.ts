@@ -24,4 +24,8 @@ export type {
   CartBuyerIdentity,
   CartBuyerIdentityInput,
   AppliedGiftCard,
+  CartDeliveryAddress,
+  CartDeliveryAddressFields,
+  CartDeliveryAddressInput,
+  CartDeliveryAddressUpdateInput,
 } from "./types.js";

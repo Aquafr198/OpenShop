@@ -12,6 +12,7 @@ import type { MoneyV2 } from "../money/money.js";
 import type {
   Cart,
   CartBuyerIdentityInput,
+  CartDeliveryAddressFields,
   CartLine,
   CartLineInput,
   CartLineUpdateInput,
@@ -43,6 +44,26 @@ export interface RawCart {
     amountUsed: MoneyV2;
     balance: MoneyV2;
   }[];
+  delivery?: {
+    addresses: {
+      id: string;
+      selected: boolean;
+      oneTimeUse: boolean;
+      address: {
+        __typename?: string;
+        address1?: string | null;
+        address2?: string | null;
+        city?: string | null;
+        company?: string | null;
+        countryCode?: string | null;
+        firstName?: string | null;
+        lastName?: string | null;
+        phone?: string | null;
+        provinceCode?: string | null;
+        zip?: string | null;
+      } | null;
+    }[];
+  } | null;
   lines: { nodes: RawCartLine[] };
 }
 
@@ -77,6 +98,21 @@ interface CartUserError {
 interface CartMutationPayload {
   cart: RawCart | null;
   userErrors: CartUserError[];
+}
+
+/** GraphQL `CartSelectableAddressInput` shape (nested). */
+export interface GqlSelectableAddressInput {
+  address: { deliveryAddress: CartDeliveryAddressFields };
+  selected?: boolean;
+  oneTimeUse?: boolean;
+}
+
+/** GraphQL `CartSelectableAddressUpdateInput` shape (nested). */
+export interface GqlSelectableAddressUpdateInput {
+  id: string;
+  address?: { deliveryAddress: CartDeliveryAddressFields };
+  selected?: boolean;
+  oneTimeUse?: boolean;
 }
 
 /** Map a raw Storefront cart onto the flat OpenShop `Cart`. */
@@ -115,6 +151,23 @@ export function mapCart(raw: RawCart): Cart {
     attributes: raw.attributes,
     buyerIdentity: raw.buyerIdentity ?? null,
     appliedGiftCards: raw.appliedGiftCards ?? [],
+    deliveryAddresses: (raw.delivery?.addresses ?? []).map((node) => ({
+      id: node.id,
+      selected: node.selected,
+      oneTimeUse: node.oneTimeUse,
+      address: {
+        address1: node.address?.address1 ?? null,
+        address2: node.address?.address2 ?? null,
+        city: node.address?.city ?? null,
+        company: node.address?.company ?? null,
+        countryCode: node.address?.countryCode ?? null,
+        firstName: node.address?.firstName ?? null,
+        lastName: node.address?.lastName ?? null,
+        phone: node.address?.phone ?? null,
+        provinceCode: node.address?.provinceCode ?? null,
+        zip: node.address?.zip ?? null,
+      },
+    })),
     lines,
   };
 }
@@ -151,6 +204,27 @@ export function cartFragment(linesFirst: number): string {
         lastCharacters
         amountUsed { amount currencyCode }
         balance { amount currencyCode }
+      }
+      delivery {
+        addresses {
+          id
+          selected
+          oneTimeUse
+          address {
+            ... on CartDeliveryAddress {
+              address1
+              address2
+              city
+              company
+              countryCode
+              firstName
+              lastName
+              phone
+              provinceCode
+              zip
+            }
+          }
+        }
       }
       lines(first: ${linesFirst}) {
         nodes {
@@ -371,6 +445,69 @@ export function buildCartDocuments(linesFirst: number) {
     }
   `;
 
+  const cartDeliveryAddressesAdd = gql<
+    { cartDeliveryAddressesAdd: CartMutationPayload },
+    { cartId: string; addresses: GqlSelectableAddressInput[] }
+  >`
+    ${fragment}
+    mutation CartDeliveryAddressesAdd(
+      $cartId: ID!
+      $addresses: [CartSelectableAddressInput!]!
+    ) {
+      cartDeliveryAddressesAdd(cartId: $cartId, addresses: $addresses) {
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
+      }
+    }
+  `;
+
+  const cartDeliveryAddressesUpdate = gql<
+    { cartDeliveryAddressesUpdate: CartMutationPayload },
+    { cartId: string; addresses: GqlSelectableAddressUpdateInput[] }
+  >`
+    ${fragment}
+    mutation CartDeliveryAddressesUpdate(
+      $cartId: ID!
+      $addresses: [CartSelectableAddressUpdateInput!]!
+    ) {
+      cartDeliveryAddressesUpdate(cartId: $cartId, addresses: $addresses) {
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
+      }
+    }
+  `;
+
+  const cartDeliveryAddressesRemove = gql<
+    { cartDeliveryAddressesRemove: CartMutationPayload },
+    { cartId: string; addressIds: string[] }
+  >`
+    ${fragment}
+    mutation CartDeliveryAddressesRemove($cartId: ID!, $addressIds: [ID!]!) {
+      cartDeliveryAddressesRemove(cartId: $cartId, addressIds: $addressIds) {
+        cart {
+          ...CartFields
+        }
+        userErrors {
+          field
+          message
+          code
+        }
+      }
+    }
+  `;
+
   return {
     cartQuery,
     cartCreate,
@@ -382,5 +519,8 @@ export function buildCartDocuments(linesFirst: number) {
     cartBuyerIdentityUpdate,
     cartGiftCardCodesUpdate,
     cartAttributesUpdate,
+    cartDeliveryAddressesAdd,
+    cartDeliveryAddressesUpdate,
+    cartDeliveryAddressesRemove,
   } satisfies Record<string, TypedDocument<unknown, Vars>>;
 }
