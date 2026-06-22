@@ -1,6 +1,6 @@
 {
   "name": "@openshop/react",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "React bindings for OpenShop's framework-agnostic commerce core.",
   "license": "MIT",
   "author": "Aquafr198",
