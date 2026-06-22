@@ -74,13 +74,27 @@ export function mediaKind(node: { __typename?: string } | null | undefined): Med
 const YOUTUBE_ID = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/;
 const VIMEO_ID = /vimeo\.com\/(?:video\/)?(\d+)/;
 
+function isSafeHttpUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Build an embeddable iframe URL for an external video node. Prefers Shopify's
  * `embedUrl`; otherwise derives it from `originUrl` + `host`. Returns `null`
  * when no usable URL can be produced.
+ *
+ * Only `http(s)` URLs are returned — a defensive guard so a crafted node can
+ * never inject a `javascript:`/`data:` URL into an iframe `src`.
  */
 export function externalVideoEmbedUrl(node: ExternalVideoNode): string | null {
-  if (node.embedUrl) return node.embedUrl;
+  if (node.embedUrl) {
+    return isSafeHttpUrl(node.embedUrl) ? node.embedUrl : null;
+  }
   const origin = node.originUrl;
   if (!origin) return null;
 

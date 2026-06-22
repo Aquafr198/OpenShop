@@ -61,4 +61,21 @@ describe("externalVideoEmbedUrl", () => {
       externalVideoEmbedUrl({ __typename: "ExternalVideo", host: "YOUTUBE", originUrl: "https://x.com/foo" }),
     ).toBeNull();
   });
+
+  it("rejects non-http(s) embed URLs (XSS guard)", () => {
+    expect(
+      externalVideoEmbedUrl({
+        __typename: "ExternalVideo",
+        host: "YOUTUBE",
+        embedUrl: "javascript:alert(1)",
+      }),
+    ).toBeNull();
+    expect(
+      externalVideoEmbedUrl({
+        __typename: "ExternalVideo",
+        host: "VIMEO",
+        embedUrl: "data:text/html,<script>alert(1)</script>",
+      }),
+    ).toBeNull();
+  });
 });
