@@ -1,5 +1,12 @@
 # @openshop/vue
 
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [813018f]
+  - @openshop/core@0.10.1
+
 ## 0.10.0
 
 ### Patch Changes
