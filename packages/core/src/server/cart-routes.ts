@@ -30,6 +30,12 @@ export interface CartRoutesOptions {
   cookie?: CartCookieConfig;
   /** Where to redirect no-JS submissions. Defaults to the Referer or "/". */
   redirectTo?: string;
+  /**
+   * Reject state-changing requests whose `Origin` (or `Sec-Fetch-Site`) header
+   * indicates a cross-site context — a CSRF defense. Default `true`. Disable
+   * only for trusted server-to-server callers that can't send these headers.
+   */
+  requireSameOrigin?: boolean;
 }
 
 interface ParsedAction {
@@ -153,6 +159,18 @@ export function createCartRoutes(options: CartRoutesOptions) {
     if (url.pathname !== path) return null;
     if (request.method !== "POST") return null;
 
+    // CSRF defense: reject obviously cross-site state-changing requests.
+    if ((options.requireSameOrigin ?? true) && isCrossOrigin(request, url)) {
+      const message = "Cross-origin request rejected";
+      if (wantsJson(request)) {
+        return new Response(JSON.stringify({ error: message }), {
+          status: 403,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(message, { status: 403 });
+    }
+
     const body = await readBody(request);
     const parsed = parseAction(body);
 
@@ -217,4 +235,25 @@ function safeRedirectTarget(
     }
   }
   return "/";
+}
+
+/**
+ * Decide whether a request looks cross-site, for CSRF protection. Uses the
+ * `Origin` header first (sent by browsers on state-changing requests), then
+ * falls back to `Sec-Fetch-Site`. When neither is present (e.g. a non-browser
+ * client), the request is treated as same-origin so legitimate server callers
+ * aren't blocked.
+ */
+function isCrossOrigin(request: Request, requestUrl: URL): boolean {
+  const origin = request.headers.get("origin");
+  if (origin) {
+    try {
+      return new URL(origin).origin !== requestUrl.origin;
+    } catch {
+      return true; // Malformed Origin: treat as cross-origin.
+    }
+  }
+  const site = request.headers.get("sec-fetch-site");
+  if (site) return site !== "same-origin" && site !== "none";
+  return false;
 }

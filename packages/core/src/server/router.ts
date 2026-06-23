@@ -42,16 +42,18 @@ export interface ServerHandlersOptions {
     path?: string;
     cookie?: CartCookieConfig;
     redirectTo?: string;
+    requireSameOrigin?: boolean;
   };
   /**
    * The Storefront proxy is OPT-IN. With a private/delegate token it would run
    * any query a client sends, so it stays off unless you provide this config.
-   * When enabled with a private token, also set `allowOperation` to restrict
-   * which operations may run.
+   * It is read-only by default (mutations rejected); set `allowMutations` or
+   * an `allowOperation` allow-list to change that.
    */
   proxy?: {
     path?: string;
     maxBodyBytes?: number;
+    allowMutations?: boolean;
     allowOperation?: (operationName: string | null, query: string) => boolean;
   };
   redirects?: { redirectStatus?: 301 | 302 } | false;

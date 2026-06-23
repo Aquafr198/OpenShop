@@ -164,6 +164,37 @@ describe("storefront proxy", () => {
     );
     expect(res?.status).toBe(502);
   });
+
+  it("rejects mutations by default (read-only proxy)", async () => {
+    const proxy = createStorefrontProxy({ storefront: client() });
+    const res = await proxy(
+      new Request("https://x.com/api/storefront", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          query: "mutation Add { cartLinesAdd { cart { id } } }",
+        }),
+      }),
+    );
+    expect(res?.status).toBe(403);
+  });
+
+  it("allows mutations when allowMutations is set", async () => {
+    const proxy = createStorefrontProxy({
+      storefront: client(),
+      allowMutations: true,
+    });
+    const res = await proxy(
+      new Request("https://x.com/api/storefront", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          query: "mutation Add { cartLinesAdd { cart { id } } }",
+        }),
+      }),
+    );
+    expect(res?.status).toBe(200);
+  });
 });
 
 describe("cart routes", () => {
@@ -258,6 +289,59 @@ describe("cart routes", () => {
     );
     expect(res?.status).toBe(303);
     expect(res?.headers.get("location")).toBe("/");
+  });
+
+  it("rejects a cross-origin Origin (CSRF defense)", async () => {
+    const client = mockCartClient();
+    const routes = createCartRoutes({ client });
+    const res = await routes(
+      new Request("https://x.com/cart", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+          origin: "https://evil.example",
+        },
+        body: JSON.stringify({ action: "add", merchandiseId: "v1" }),
+      }),
+    );
+    expect(res?.status).toBe(403);
+    expect(client.create).not.toHaveBeenCalled();
+  });
+
+  it("allows a same-origin Origin", async () => {
+    const routes = createCartRoutes({ client: mockCartClient() });
+    const res = await routes(
+      new Request("https://x.com/cart", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+          origin: "https://x.com",
+        },
+        body: JSON.stringify({ action: "add", merchandiseId: "v1" }),
+      }),
+    );
+    expect(res?.status).toBe(200);
+  });
+
+  it("can disable the same-origin requirement for trusted callers", async () => {
+    const routes = createCartRoutes({
+      client: mockCartClient(),
+      requireSameOrigin: false,
+    });
+    const res = await routes(
+      new Request("https://x.com/cart", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json",
+          origin: "https://evil.example",
+        },
+        body: JSON.stringify({ action: "add", merchandiseId: "v1" }),
+      }),
+    );
+    expect(res?.status).toBe(200);
   });
 });
 

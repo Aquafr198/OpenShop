@@ -6,9 +6,11 @@
  * with its configured token, and the upstream payload is mirrored back.
  *
  * SECURITY: an unrestricted proxy will run *any* query a client sends with the
- * server's token. If you use a private token (broader scopes), you should pass
- * `allowOperation` to allow-list operations, or only proxy a public token.
- * The handler refuses obvious abuse (oversized bodies) by default.
+ * server's token. By default this handler is **read-only**: mutations are
+ * rejected with 403 unless you opt in with `allowMutations: true` or take full
+ * control with `allowOperation`. If you proxy a private token (broader scopes),
+ * prefer an explicit `allowOperation` allow-list. Oversized bodies are refused
+ * by default.
  */
 
 import type { StorefrontClient } from "../storefront/client.js";
@@ -20,8 +22,14 @@ export interface StorefrontProxyOptions {
   /** Max request body size in bytes. Default 100_000. */
   maxBodyBytes?: number;
   /**
+   * Allow GraphQL mutations through the proxy. Default `false` (read-only).
+   * Ignored when `allowOperation` is provided (that predicate then decides).
+   */
+  allowMutations?: boolean;
+  /**
    * Optional allow-list predicate. Receives the operation name parsed from the
-   * query (best-effort). Return false to reject with 403.
+   * query (best-effort). Return false to reject with 403. When provided, it is
+   * the sole authority (the default mutation block is not applied).
    */
   allowOperation?: (operationName: string | null, query: string) => boolean;
 }
@@ -30,6 +38,16 @@ const OP_NAME = /\b(?:query|mutation)\s+([A-Za-z_][A-Za-z0-9_]*)/;
 
 function operationName(query: string): string | null {
   return OP_NAME.exec(query)?.[1] ?? null;
+}
+
+/**
+ * Whether the document's first operation is a mutation. Strips leading
+ * whitespace and `#` comments, then checks the opening keyword — robust for the
+ * single-operation documents the Storefront API expects.
+ */
+function isMutation(query: string): boolean {
+  const stripped = query.replace(/^\s*(?:#[^\n]*\n\s*)*/, "");
+  return /^mutation\b/.test(stripped);
 }
 
 /** Byte length of a string (UTF-8), not UTF-16 code-unit count. */
@@ -91,6 +109,13 @@ export function createStorefrontProxy(options: StorefrontProxyOptions) {
       if (!allowed) {
         return json({ errors: [{ message: "Operation not allowed" }] }, 403);
       }
+    } else if (isMutation(query) && !options.allowMutations) {
+      return json(
+        {
+          errors: [{ message: "Mutations are not allowed through this proxy" }],
+        },
+        403,
+      );
     }
 
     try {
