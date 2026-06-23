@@ -47,6 +47,30 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+/**
+ * Validate a link `href` from (potentially untrusted) rich-text content.
+ * Returns the URL if safe, or `null` to drop the attribute.
+ *
+ * Relative URLs are allowed; absolute URLs must use an http(s)/mailto/tel
+ * scheme. Embedded control characters/whitespace are stripped before
+ * classifying the scheme because browsers ignore them when resolving it
+ * (so `java\tscript:` would otherwise run as `javascript:`).
+ */
+function safeHref(raw: string): string | null {
+  const url = raw.trim();
+  if (!url) return null;
+  const cleaned = url.replace(
+    // eslint-disable-next-line no-control-regex -- intentional: strip control chars/whitespace like browsers do before scheme resolution
+    /[\u0000-\u0020]+/g,
+    "",
+  );
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(cleaned);
+  if (!scheme) return url; // Relative URL — safe.
+  return SAFE_LINK_SCHEMES.has(`${scheme[1]!.toLowerCase()}:`) ? url : null;
+}
+
 function renderNode(node: RichTextNode): string {
   switch (node.type) {
     case "root":
@@ -64,10 +88,13 @@ function renderNode(node: RichTextNode): string {
     case "list-item":
       return `<li>${(node.children ?? []).map(renderNode).join("")}</li>`;
     case "link": {
-      const href = escapeHtml(node.url ?? "");
+      const safe = safeHref(node.url ?? "");
+      const href = safe !== null ? ` href="${escapeHtml(safe)}"` : "";
       const target = node.target ? ` target="${escapeHtml(node.target)}"` : "";
+      // Prevent reverse tabnabbing on links that open a new context.
+      const rel = node.target ? ` rel="noopener noreferrer"` : "";
       const title = node.title ? ` title="${escapeHtml(node.title)}"` : "";
-      return `<a href="${href}"${target}${title}>${(node.children ?? []).map(renderNode).join("")}</a>`;
+      return `<a${href}${target}${rel}${title}>${(node.children ?? []).map(renderNode).join("")}</a>`;
     }
     case "text": {
       let content = escapeHtml(node.value ?? "");

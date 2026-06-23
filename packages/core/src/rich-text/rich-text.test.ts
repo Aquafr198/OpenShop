@@ -49,7 +49,7 @@ describe("renderRichText", () => {
     expect(html).toContain("<em>italic</em>");
     expect(html).toContain("<ul><li>One</li><li>Two</li></ul>");
     expect(html).toContain(
-      '<a href="https://example.com" target="_blank">Click</a>',
+      '<a href="https://example.com" target="_blank" rel="noopener noreferrer">Click</a>',
     );
   });
 
@@ -70,5 +70,47 @@ describe("renderRichText", () => {
     });
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("drops a javascript: link href (XSS guard)", () => {
+    const html = renderRichText({
+      type: "root",
+      children: [
+        {
+          type: "link",
+          url: "javascript:alert(1)",
+          children: [{ type: "text", value: "x" }],
+        },
+      ],
+    });
+    expect(html).not.toContain("javascript:");
+    expect(html).toBe("<a>x</a>");
+  });
+
+  it("strips control chars before classifying the scheme", () => {
+    const html = renderRichText({
+      type: "root",
+      children: [
+        {
+          type: "link",
+          url: "java\tscript:alert(1)",
+          children: [{ type: "text", value: "x" }],
+        },
+      ],
+    });
+    expect(html).not.toContain("script:");
+  });
+
+  it("keeps safe http/mailto/relative hrefs", () => {
+    const make = (url: string) =>
+      renderRichText({
+        type: "root",
+        children: [
+          { type: "link", url, children: [{ type: "text", value: "x" }] },
+        ],
+      });
+    expect(make("https://ok.com")).toContain('href="https://ok.com"');
+    expect(make("mailto:a@b.co")).toContain('href="mailto:a@b.co"');
+    expect(make("/products/tee")).toContain('href="/products/tee"');
   });
 });
