@@ -1,6 +1,6 @@
 {
   "name": "@openshop/vue",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Vue 3 bindings for OpenShop's framework-agnostic commerce core.",
   "license": "MIT",
   "author": "Aquafr198",
