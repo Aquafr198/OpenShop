@@ -3,3 +3,6 @@
 **/.turbo/**
 **/coverage/**
 pnpm-lock.yaml
+.vscode
+**/CHANGELOG.md
+landing-page
