@@ -10,3 +10,7 @@ coverage/
 
 # Template env files are placeholders (no real secrets) and must be committed
 !packages/create-openshop/templates/**/.env
+
+# Landing page lives here temporarily; it belongs in its own private repo and
+# must never be pushed to this repo.
+landing-page/

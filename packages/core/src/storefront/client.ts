@@ -10,10 +10,13 @@
 import {
   StorefrontGraphQLError,
   StorefrontHttpError,
+  StorefrontThrottledError,
+  isThrottledErrors,
   type GraphQLError,
 } from "./errors.js";
 import {
   CircuitBreaker,
+  isMutationRetryable,
   withRetry,
   withTimeout,
   type CircuitBreakerOptions,
@@ -118,7 +121,7 @@ export class StorefrontClient {
   ): Promise<ResultOf<D>> {
     const policy = options.cache ?? (this.swr ? CacheDefault : CacheNone);
     const run = () =>
-      this.execute<ResultOf<D>>(documentSource(document), options);
+      this.execute<ResultOf<D>>(documentSource(document), options, false);
 
     if (this.swr && policy.maxAge > 0) {
       const key = this.cacheKey(documentSource(document), options);
@@ -127,12 +130,18 @@ export class StorefrontClient {
     return run();
   }
 
-  /** Run a mutation. Never cached. */
+  /**
+   * Run a mutation. Never cached. Unlike reads, a mutation is NOT retried on
+   * ambiguous failures (timeout, network reset, 5xx) — the operation may have
+   * already committed and the Cart API has no idempotency key, so a blind retry
+   * could double-apply it. Only provably-unsent failures (throttle, open
+   * circuit) are retried.
+   */
   async mutate<D extends TypedDocument<unknown, unknown>>(
     document: D,
     options: Omit<QueryOptions<VariablesOf<D>>, "cache"> = {},
   ): Promise<ResultOf<D>> {
-    return this.execute<ResultOf<D>>(documentSource(document), options);
+    return this.execute<ResultOf<D>>(documentSource(document), options, true);
   }
 
   /**
@@ -176,7 +185,7 @@ export class StorefrontClient {
 
   private cacheKey(query: string, options: QueryOptions<unknown>): string {
     const i18n = options.i18n ?? this.config.i18n;
-    return JSON.stringify({
+    return stableStringify({
       q: query,
       v: options.variables ?? null,
       i18n: i18n ?? null,
@@ -186,10 +195,15 @@ export class StorefrontClient {
   private async execute<T>(
     query: string,
     options: QueryOptions<unknown>,
+    isMutation: boolean,
   ): Promise<T> {
     const task = () => this.fetchGraphQL<T>(query, options);
     const guarded = this.breaker ? () => this.breaker!.execute(task) : task;
-    return withRetry(guarded, this.config.retry);
+    return withRetry(
+      guarded,
+      this.config.retry,
+      isMutation ? isMutationRetryable : undefined,
+    );
   }
 
   private buildHeaders(): Record<string, string> {
@@ -243,6 +257,11 @@ export class StorefrontClient {
 
     const payload = (await response.json()) as GraphQLResponse<T>;
     if (payload.errors?.length) {
+      // Throttling arrives as a 200 with a THROTTLED extension code; surface it
+      // as a retryable error so backoff (and the circuit breaker) kick in.
+      if (isThrottledErrors(payload.errors)) {
+        throw new StorefrontThrottledError(payload.errors);
+      }
       throw new StorefrontGraphQLError(payload.errors, query);
     }
     if (payload.data === undefined) {
@@ -261,6 +280,25 @@ async function safeText(response: Response): Promise<string> {
   } catch {
     return "";
   }
+}
+
+/**
+ * Deterministic JSON stringify with recursively sorted object keys, so two
+ * equivalent variable objects with differently-ordered keys map to the same
+ * cache entry.
+ */
+function stableStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, val) => {
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      return Object.keys(val as Record<string, unknown>)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, k) => {
+          acc[k] = (val as Record<string, unknown>)[k];
+          return acc;
+        }, {});
+    }
+    return val;
+  });
 }
 
 /** Convenience factory mirroring the documented API shape. */

@@ -18,6 +18,11 @@ export {
   safeCompare,
 } from "./pkce.js";
 export {
+  verifyIdToken,
+  type IdTokenClaims,
+  type VerifyIdTokenOptions,
+} from "./id-token.js";
+export {
   mapCustomer,
   buildCustomerDocuments,
   type Customer,

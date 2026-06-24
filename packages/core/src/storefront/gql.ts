@@ -40,6 +40,10 @@ export type VariablesOf<D> =
  *   }
  * `;
  * ```
+ *
+ * SECURITY: only interpolate static, trusted fragments into the template.
+ * NEVER interpolate user input into the query string — pass it through
+ * `variables` instead, or you open a GraphQL injection vector.
  */
 export function gql<TData = unknown, TVariables = Record<string, never>>(
   strings: TemplateStringsArray,

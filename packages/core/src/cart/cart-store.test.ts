@@ -267,4 +267,67 @@ describe("createCartStore", () => {
     });
     expect(() => store.setNote("x")).toThrow(/does not implement/);
   });
+
+  it("routes updateLine(quantity: 0) to removeLines", async () => {
+    const client = mockClient();
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({
+        id: "gid://shopify/Cart/1",
+        lines: [lineFor("v1", 2)],
+        totalQuantity: 2,
+      }),
+    });
+    await store.updateLine({ id: "line:v1", quantity: 0 });
+    expect(client.removeLines).toHaveBeenCalledWith("gid://shopify/Cart/1", [
+      "line:v1",
+    ]);
+    expect(client.updateLines).not.toHaveBeenCalled();
+  });
+
+  it("shows an exact optimistic total when a price is supplied", () => {
+    const client = mockClient();
+    client.create = vi.fn(() => new Promise<Cart>(() => {})); // never resolves
+    const store = createCartStore({ client, defaultCurrency: "EUR" });
+
+    void store.addLine({
+      merchandiseId: "v1",
+      quantity: 2,
+      price: { amount: "10.00", currencyCode: "EUR" },
+    });
+
+    const cart = store.get().cart!;
+    expect(cart.lines[0]!.merchandise.price).toEqual({
+      amount: "10.00",
+      currencyCode: "EUR",
+    });
+    expect(cart.cost.totalAmount).toEqual({
+      amount: "20.00",
+      currencyCode: "EUR",
+    });
+  });
+
+  it("reconciles from the server when a mutation fails (no snapshot clobber)", async () => {
+    const client = mockClient();
+    const serverCart = makeCart({
+      id: "gid://shopify/Cart/1",
+      lines: [lineFor("v1", 1)],
+      totalQuantity: 1,
+    });
+    client.get = vi.fn(async () => serverCart);
+    client.addLines = vi.fn(async () => {
+      throw new Error("network down");
+    });
+    const store = createCartStore({
+      client,
+      initialCart: makeCart({ id: "gid://shopify/Cart/1" }),
+    });
+
+    await store.addLine({ merchandiseId: "v2", quantity: 1 });
+    await new Promise((r) => setTimeout(r, 0)); // let the queued reconcile run
+
+    expect(client.get).toHaveBeenCalledWith("gid://shopify/Cart/1");
+    expect(store.get().cart?.totalQuantity).toBe(1);
+    expect(store.get().cart?.lines).toHaveLength(1);
+  });
 });

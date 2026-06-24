@@ -32,6 +32,11 @@ export interface CartStoreOptions {
   persistence?: CartPersistence;
   /** Called whenever a mutation throws, for logging/analytics. */
   onError?: (error: unknown) => void;
+  /**
+   * Currency for optimistic placeholders before the server reconciles (e.g.
+   * from your i18n context). Default "USD".
+   */
+  defaultCurrency?: string;
 }
 
 export interface CartPersistence {
@@ -85,6 +90,7 @@ export interface CartStore extends ReadableStore<CartState> {
 
 export function createCartStore(options: CartStoreOptions): CartStore {
   const { client, persistence, onError } = options;
+  const currency = options.defaultCurrency ?? "USD";
   const store = createStore<CartState>({
     ...initialState,
     cart: options.initialCart ?? null,
@@ -135,15 +141,41 @@ export function createCartStore(options: CartStoreOptions): CartStore {
     }));
   }
 
+  /** Re-fetch the authoritative server cart and adopt it as the truth. */
+  async function reconcile(): Promise<void> {
+    if (!serverCartId) return;
+    try {
+      const fresh = await client.get(serverCartId);
+      if (fresh) {
+        setCart(fresh);
+      } else {
+        // Cart no longer exists upstream.
+        serverCartId = null;
+        persistence?.clear();
+        store.update((s) => ({ ...s, cart: null }));
+      }
+    } catch (error) {
+      onError?.(error);
+    }
+  }
+
   function fail(snapshot: Cart | null, error: unknown): void {
     onError?.(error);
     store.update((s) => ({
       ...s,
-      cart: snapshot,
       pending: Math.max(0, s.pending - 1),
       status: "error",
       error: error instanceof Error ? error.message : String(error),
     }));
+    // With a server cart, re-sync from the source of truth instead of blindly
+    // restoring a snapshot — restoring would clobber other optimistic patches
+    // still in flight. Without one (e.g. initial create failed), revert the
+    // optimistic patch to its pre-mutation state.
+    if (serverCartId) {
+      void enqueue(reconcile);
+    } else {
+      store.update((s) => ({ ...s, cart: snapshot }));
+    }
   }
 
   function mutate(
@@ -195,13 +227,15 @@ export function createCartStore(options: CartStoreOptions): CartStore {
 
     addLines(lines) {
       return mutate(
-        (cart) => applyOptimisticAdd(cart, lines),
+        (cart) => applyOptimisticAdd(cart, lines, currency),
         (cartId) => client.addLines(cartId, lines),
         () => client.create(lines),
       );
     },
 
     updateLine(line) {
+      // quantity 0 means "remove" — cartLinesUpdate expects quantity >= 1.
+      if (line.quantity === 0) return this.removeLine(line.id);
       return mutate(
         (cart) => (cart ? applyOptimisticUpdate(cart, line) : null),
         (cartId) => client.updateLines(cartId, [line]),
@@ -344,7 +378,7 @@ function requireClientMethod<K extends OptionalCartClientMethod>(
 }
 
 /** A provisional, client-only empty cart used for optimistic display only. */
-function provisionalCart(currencyCode = "USD"): Cart {
+function provisionalCart(currencyCode: string): Cart {
   const zero = { amount: "0.0", currencyCode };
   return {
     id: `optimistic:cart:${Date.now()}`,
@@ -380,8 +414,13 @@ function recompute(cart: Cart): Cart {
   };
 }
 
-function applyOptimisticAdd(cart: Cart | null, inputs: CartLineInput[]): Cart {
-  const base = cart ?? provisionalCart();
+function applyOptimisticAdd(
+  cart: Cart | null,
+  inputs: CartLineInput[],
+  currency: string,
+): Cart {
+  const base = cart ?? provisionalCart(currency);
+  const fallbackCurrency = base.cost.totalAmount.currencyCode || currency;
   const lines = [...base.lines];
   for (const input of inputs) {
     const qty = input.quantity ?? 1;
@@ -392,7 +431,12 @@ function applyOptimisticAdd(cart: Cart | null, inputs: CartLineInput[]): Cart {
       const line = lines[existing]!;
       lines[existing] = { ...line, quantity: line.quantity + qty };
     } else {
-      // Placeholder line; reconciled by the server response.
+      // Placeholder line; reconciled by the server response. Uses the supplied
+      // price when available so the optimistic total is exact.
+      const price = input.price ?? {
+        amount: "0",
+        currencyCode: fallbackCurrency,
+      };
       lines.push({
         id: `optimistic:${input.merchandiseId}:${Date.now()}`,
         quantity: qty,
@@ -400,22 +444,13 @@ function applyOptimisticAdd(cart: Cart | null, inputs: CartLineInput[]): Cart {
           id: input.merchandiseId,
           title: "",
           productTitle: "",
-          price: {
-            amount: "0",
-            currencyCode: base.cost.totalAmount.currencyCode,
-          },
+          price,
           availableForSale: true,
           selectedOptions: [],
         },
         cost: {
-          totalAmount: {
-            amount: "0",
-            currencyCode: base.cost.totalAmount.currencyCode,
-          },
-          amountPerQuantity: {
-            amount: "0",
-            currencyCode: base.cost.totalAmount.currencyCode,
-          },
+          totalAmount: price,
+          amountPerQuantity: price,
         },
         ...(input.attributes ? { attributes: input.attributes } : {}),
       });

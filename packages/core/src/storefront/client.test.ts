@@ -139,4 +139,68 @@ describe("StorefrontClient", () => {
     await client.query(ShopQuery, { cache: { maxAge: 60 } });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("retries a THROTTLED GraphQL response (HTTP 200) then succeeds", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          errors: [{ message: "Throttled", extensions: { code: "THROTTLED" } }],
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ data: { shop: { name: "ok" } } }));
+    const client = createStorefrontClient({
+      storeDomain: "demo.myshopify.com",
+      publicAccessToken: "t",
+      fetch: fetchMock,
+      retry: { baseDelayMs: 1 },
+    });
+    const data = await client.query(ShopQuery);
+    expect(data.shop.name).toBe("ok");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does NOT retry a mutation on a 5xx (ambiguous outcome)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}, 503));
+    const client = createStorefrontClient({
+      storeDomain: "demo.myshopify.com",
+      publicAccessToken: "t",
+      fetch: fetchMock,
+      retry: { baseDelayMs: 1 },
+    });
+    const Mutation = gql<{ ok: boolean }, Record<string, never>>`
+      mutation DoThing {
+        ok
+      }
+    `;
+    await expect(client.mutate(Mutation)).rejects.toBeInstanceOf(
+      StorefrontHttpError,
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("DOES retry a mutation when throttled (rejected pre-execution)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          errors: [{ message: "Throttled", extensions: { code: "THROTTLED" } }],
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ data: { ok: true } }));
+    const client = createStorefrontClient({
+      storeDomain: "demo.myshopify.com",
+      publicAccessToken: "t",
+      fetch: fetchMock,
+      retry: { baseDelayMs: 1 },
+    });
+    const Mutation = gql<{ ok: boolean }, Record<string, never>>`
+      mutation DoThing {
+        ok
+      }
+    `;
+    const data = await client.mutate(Mutation);
+    expect(data.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

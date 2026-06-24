@@ -27,6 +27,26 @@ export class StorefrontGraphQLError extends StorefrontError {
   }
 }
 
+/**
+ * The Storefront API throttled the request. Shopify signals throttling with an
+ * HTTP 200 carrying `errors[].extensions.code === "THROTTLED"` (the operation
+ * is rejected *before* execution), so it is always safe to retry with backoff
+ * — including for mutations.
+ */
+export class StorefrontThrottledError extends StorefrontError {
+  override readonly name = "StorefrontThrottledError";
+  readonly errors: GraphQLError[];
+  constructor(errors: GraphQLError[]) {
+    super("Storefront API request was throttled");
+    this.errors = errors;
+  }
+}
+
+/** Whether a set of GraphQL errors indicates Storefront API throttling. */
+export function isThrottledErrors(errors: GraphQLError[]): boolean {
+  return errors.some((e) => e.extensions?.["code"] === "THROTTLED");
+}
+
 /** The HTTP request failed (non-2xx status). */
 export class StorefrontHttpError extends StorefrontError {
   override readonly name = "StorefrontHttpError";

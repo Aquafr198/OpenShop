@@ -148,6 +148,11 @@ export interface CartLineInput {
   attributes?: { key: string; value: string }[];
   /** For subscription products — the selling plan id. */
   sellingPlanId?: string;
+  /**
+   * Optional unit price. When provided, the optimistic line and cart total are
+   * exact before the server reconciles (otherwise they show 0 until then).
+   */
+  price?: MoneyV2;
 }
 
 export interface CartLineUpdateInput {

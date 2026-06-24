@@ -7,6 +7,7 @@
 import {
   CircuitOpenError,
   StorefrontHttpError,
+  StorefrontThrottledError,
   StorefrontTimeoutError,
 } from "./errors.js";
 
@@ -25,13 +26,32 @@ const DEFAULT_RETRY: Required<RetryOptions> = {
   maxDelayMs: 5000,
 };
 
-/** Determine whether a thrown error is worth retrying. */
+/**
+ * Whether a thrown error is worth retrying for a *read* (idempotent) request.
+ * Reads can safely retry on timeouts, network blips, 5xx/429, and throttling.
+ */
 export function isRetryable(error: unknown): boolean {
+  if (error instanceof StorefrontThrottledError) return true;
   if (error instanceof StorefrontTimeoutError) return true;
   if (error instanceof StorefrontHttpError) return error.isRetryable;
   // Network-level fetch failures (DNS, connection reset) throw TypeError.
   if (error instanceof TypeError) return true;
   return false;
+}
+
+/**
+ * Whether a thrown error is worth retrying for a *mutation* (non-idempotent).
+ * Only retry errors where the operation provably never reached the server, to
+ * avoid double execution (the Cart API has no idempotency key): a throttle
+ * (rejected pre-execution) or an open circuit (never sent). Timeouts, network
+ * resets and 5xx are ambiguous — the mutation may have committed — so we do
+ * NOT retry them.
+ */
+export function isMutationRetryable(error: unknown): boolean {
+  return (
+    error instanceof StorefrontThrottledError ||
+    error instanceof CircuitOpenError
+  );
 }
 
 const sleep = (ms: number): Promise<void> =>
@@ -50,6 +70,7 @@ function backoffDelay(attempt: number, opts: Required<RetryOptions>): number {
 export async function withRetry<T>(
   fn: () => Promise<T>,
   options: RetryOptions = {},
+  shouldRetry: (error: unknown) => boolean = isRetryable,
 ): Promise<T> {
   const opts = { ...DEFAULT_RETRY, ...options };
   let lastError: unknown;
@@ -59,7 +80,7 @@ export async function withRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error;
-      if (attempt >= opts.maxAttempts || !isRetryable(error)) throw error;
+      if (attempt >= opts.maxAttempts || !shouldRetry(error)) throw error;
       await sleep(backoffDelay(attempt, opts));
     }
   }

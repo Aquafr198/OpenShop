@@ -17,8 +17,10 @@ export {
   StorefrontError,
   StorefrontGraphQLError,
   StorefrontHttpError,
+  StorefrontThrottledError,
   StorefrontTimeoutError,
   CircuitOpenError,
+  isThrottledErrors,
   type GraphQLError,
 } from "./errors.js";
 export {
@@ -26,6 +28,7 @@ export {
   withRetry,
   withTimeout,
   isRetryable,
+  isMutationRetryable,
   type RetryOptions,
   type CircuitBreakerOptions,
 } from "./resilience.js";

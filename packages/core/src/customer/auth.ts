@@ -17,6 +17,7 @@ import {
   generateCodeVerifier,
   generateRandomState,
 } from "./pkce.js";
+import { verifyIdToken, type IdTokenClaims } from "./id-token.js";
 
 export interface CustomerAccountAuthConfig {
   /**
@@ -42,6 +43,16 @@ export interface CustomerAccountAuthConfig {
   useDiscovery?: boolean;
   /** Override the Shopify endpoints entirely (useful for testing). */
   endpoints?: Partial<OAuthEndpoints>;
+  /**
+   * JWKS endpoint for `id_token` verification. Auto-discovered via OIDC;
+   * provide it explicitly only when `useDiscovery` is off.
+   */
+  jwksUri?: string;
+  /**
+   * Expected `iss` claim for `id_token` verification. Auto-discovered via OIDC;
+   * provide it explicitly only when `useDiscovery` is off.
+   */
+  issuer?: string;
   fetch?: typeof fetch;
 }
 
@@ -86,6 +97,8 @@ interface OidcConfig {
   authorization_endpoint: string;
   token_endpoint: string;
   end_session_endpoint?: string;
+  jwks_uri?: string;
+  issuer?: string;
 }
 
 /**
@@ -93,10 +106,10 @@ interface OidcConfig {
  * by Shopify's official docs:
  * https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/authenticate-customers
  */
-async function discoverEndpoints(
+async function discoverOidc(
   storeDomain: string,
   fetchImpl: typeof fetch,
-): Promise<OAuthEndpoints> {
+): Promise<OidcConfig> {
   const url = `https://${storeDomain}/.well-known/openid-configuration`;
   const res = await fetchImpl(url);
   if (!res.ok) {
@@ -104,14 +117,7 @@ async function discoverEndpoints(
       `Failed to fetch OIDC configuration from ${url}: ${res.status} ${res.statusText}`,
     );
   }
-  const config = (await res.json()) as OidcConfig;
-  return {
-    authorize: config.authorization_endpoint,
-    token: config.token_endpoint,
-    logout:
-      config.end_session_endpoint ??
-      `https://shopify.com/authentication/${storeDomain}/logout`,
-  };
+  return (await res.json()) as OidcConfig;
 }
 
 interface RawTokenResponse {
@@ -126,6 +132,8 @@ interface RawTokenResponse {
 export class CustomerAccountAuth {
   private readonly config: CustomerAccountAuthConfig;
   private resolvedEndpoints: OAuthEndpoints | null = null;
+  private jwksUri: string | undefined;
+  private issuer: string | undefined;
   private readonly fetchImpl: typeof fetch;
   private readonly scopes: string[];
 
@@ -133,6 +141,8 @@ export class CustomerAccountAuth {
     this.config = config;
     this.fetchImpl = config.fetch ?? globalThis.fetch;
     this.scopes = config.scopes ?? DEFAULT_SCOPES;
+    this.jwksUri = config.jwksUri;
+    this.issuer = config.issuer;
 
     // If full endpoints are provided, use them immediately (no discovery).
     if (
@@ -150,10 +160,16 @@ export class CustomerAccountAuth {
 
     const useDiscovery = this.config.useDiscovery !== false;
     if (useDiscovery) {
-      this.resolvedEndpoints = await discoverEndpoints(
-        this.config.storeDomain,
-        this.fetchImpl,
-      );
+      const oidc = await discoverOidc(this.config.storeDomain, this.fetchImpl);
+      this.jwksUri ??= oidc.jwks_uri;
+      this.issuer ??= oidc.issuer;
+      this.resolvedEndpoints = {
+        authorize: oidc.authorization_endpoint,
+        token: oidc.token_endpoint,
+        logout:
+          oidc.end_session_endpoint ??
+          `https://shopify.com/authentication/${this.config.storeDomain}/logout`,
+      };
     } else {
       const shopId = this.config.shopId ?? this.config.storeDomain;
       this.resolvedEndpoints = defaultEndpoints(shopId);
@@ -195,10 +211,16 @@ export class CustomerAccountAuth {
     };
   }
 
-  /** Exchange an authorization code for tokens. */
+  /**
+   * Exchange an authorization code for tokens. When `nonce` (from
+   * `beginAuthorization`) is supplied and the response carries an `id_token`,
+   * the token is fully verified (JWKS signature + `iss`/`aud`/`exp`/`nonce`)
+   * before returning — pass it to close the OIDC loop securely.
+   */
   async exchangeCode(args: {
     code: string;
     verifier: string;
+    nonce?: string;
   }): Promise<TokenSet> {
     const body = new URLSearchParams({
       grant_type: "authorization_code",
@@ -207,7 +229,36 @@ export class CustomerAccountAuth {
       code: args.code,
       code_verifier: args.verifier,
     });
-    return this.tokenRequest(body);
+    const tokens = await this.tokenRequest(body);
+    if (args.nonce !== undefined && tokens.idToken) {
+      await this.verifyIdToken(tokens.idToken, args.nonce);
+    }
+    return tokens;
+  }
+
+  /**
+   * Verify an OIDC `id_token`: JWKS signature, issuer, audience (== clientId),
+   * expiry and (when given) the `nonce`. Resolves the JWKS/issuer via OIDC
+   * discovery when not explicitly configured. Throws on any failure.
+   */
+  async verifyIdToken(
+    idToken: string,
+    expectedNonce?: string,
+  ): Promise<IdTokenClaims> {
+    await this.getEndpoints(); // ensures discovery populated jwksUri/issuer
+    if (!this.jwksUri || !this.issuer) {
+      throw new Error(
+        "Cannot verify id_token: jwksUri/issuer unavailable. Enable OIDC " +
+          "discovery or pass `jwksUri` and `issuer` in the config.",
+      );
+    }
+    return verifyIdToken(idToken, {
+      jwksUri: this.jwksUri,
+      issuer: this.issuer,
+      audience: this.config.clientId,
+      fetch: this.fetchImpl,
+      ...(expectedNonce !== undefined ? { nonce: expectedNonce } : {}),
+    });
   }
 
   /** Exchange a refresh token for a fresh access token. */
